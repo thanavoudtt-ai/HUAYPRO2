@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>HUAYPRO 2</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        
+        <div id="loginContainer" class="app-container">
+    <div class="card" style="margin-top: 15%; padding: 30px 20px;">
+        <div style="font-size: 50px; text-align: center; margin-bottom: 10px; filter: drop-shadow(0 4px 10px rgba(10,132,255,0.3));">💎</div>
+        <h1 style="text-align: center; font-size: 26px; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px;">HUAYPRO 2</h1>
+        <p style="text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">กรุณาเลือกรายชื่อและกรอก PIN พนักงาน</p>
+
+        <div id="staffLoginSection">
+            <div class="input-group">
+                <label>ชื่อพนักงาน (NAME)</label>
+                <input type="text" id="loginUser" placeholder="พิมพ์ชื่อของคุณ เช่น JEN" style="font-size: 17px; text-align: center; font-weight: bold;">
+            </div>
+            <div class="input-group" style="margin-bottom: 24px;">
+                <label>รหัส PIN เข้าสู่ระบบ</label>
+                <input type="password" id="loginPin" placeholder="••••" maxlength="4" inputmode="numeric" style="text-align: center; font-size: 26px; letter-spacing: 12px; font-weight: bold;">
+            </div>
+        </div>
+
+        <div id="adminLoginSection" class="hidden">
+            <div class="input-group" style="margin-bottom: 24px;">
+                <label>รหัสผ่านผู้ดูแลระบบสูงสุด (Super Admin)</label>
+                <input type="password" id="adminPassword" placeholder="••••••••" style="text-align: center; font-size: 18px; font-weight: bold;">
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="handleLogin()">🚀 เข้าสู่ระบบใช้งาน</button>
+        <button id="toggleLoginBtn" class="btn btn-secondary" style="margin-top: 12px;" onclick="toggleLoginMode()">👑 เปลี่ยนเป็นล็อกอิน แอดมินสูงสุด</button>
+    </div>
+</div>
+
+        <div id="mainApp" style="display: none;">
+            <div class="navbar-top">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 24px;">👤</div>
+                    <div>
+                        <div id="userProfileName" style="font-weight: 700; font-size: 15px;">พนักงานขาย</div>
+                        <div id="userBadgeRole" class="badge">Staff Agent</div>
+                    </div>
+                </div>
+                <div style="text-align:center;">
+                    <div id="serverClock" style="font-size:18px; font-weight:900; color:var(--ios-green); font-variant-numeric:tabular-nums; letter-spacing:1px;">--:--:--</div>
+                    <div id="serverClockStatus" style="font-size:9px; color:var(--text-muted);">🔄 sync...</div>
+                </div>
+                <button class="btn-logout" onclick="logout()">🚪 ออก</button>
+            </div>
+
+            <!-- ✅ Super Admin Menu -->
+            <div id="superAdminMenuPage" class="app-container hidden">
+                <div class="menu-grid">
+                    <div class="menu-item" onclick="goToAdminPage('staffPage')">
+                        <div class="menu-icon">👥</div>
+                        <div class="menu-title">พนักงาน</div>
+                    </div>
+                    <div class="menu-item" onclick="goToAdminPage('salesReportPage')">
+                        <div class="menu-icon">📊</div>
+                        <div class="menu-title">ประวัติการขาย</div>
+                    </div>
+                    <div class="menu-item" onclick="goToAdminPage('timeLimitPage')">
+                        <div class="menu-icon">⏰</div>
+                        <div class="menu-title">ปรับเวลา</div>
+                    </div>
+                    <div class="menu-item" onclick="goToAdminPage('checkWinPage')">
+                        <div class="menu-icon">🔍</div>
+                        <div class="menu-title">ตรวจหวย</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 👥 หน้าจัดการพนักงาน -->
+            <div id="staffPage" class="app-container hidden">
+                <div class="card">
+                    <h2 style="font-size:16px; font-weight:800; margin-bottom:14px; color:var(--ios-blue);">👥 จัดการพนักงาน</h2>
+                    <div id="staffListContainer" style="margin-bottom:14px;"></div>
+                    <button onclick="openAddStaffModal()" class="btn btn-primary">➕ เพิ่มพนักงานใหม่</button>
+                </div>
+                <button class="btn btn-secondary" onclick="backToAdminMenu()">⬅️ กลับเมนูหลัก</button>
+            </div>
+
+            <!-- 📊 หน้าประวัติการขาย -->
+            <div id="salesReportPage" class="app-container hidden">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-label">ยอดขายวันนี้</div><div class="stat-value" id="rptToday">0 ₭</div></div>
+                    <div class="stat-card"><div class="stat-label">ยอดขายเมื่อวาน</div><div class="stat-value" style="color:var(--text-muted);" id="rptYesterday">0 ₭</div></div>
+                </div>
+                <div class="stats-grid" style="margin-top:10px;">
+                    <div class="stat-card"><div class="stat-label">ยอดขายอาทิตย์นี้</div><div class="stat-value" style="color:var(--ios-blue);" id="rptWeek">0 ₭</div></div>
+                    <div class="stat-card"><div class="stat-label">ยอดขายเดือนนี้</div><div class="stat-value" style="color:var(--ios-blue);" id="rptMonth">0 ₭</div></div>
+                </div>
+                <div class="stats-grid" style="margin-top:10px;">
+                    <div class="stat-card"><div class="stat-label">ยอดขายปีนี้</div><div class="stat-value" style="color:var(--ios-blue);" id="rptYear">0 ₭</div></div>
+                    <div class="stat-card"><div class="stat-label">บิลทั้งหมด</div><div class="stat-value" style="color:var(--text-muted);" id="rptBills">0 บิล</div></div>
+                </div>
+                <div class="card" style="margin-top:10px; border:1px solid rgba(48,209,88,0.3);">
+                    <h3 style="font-size:13px; font-weight:700; margin-bottom:10px; color:var(--ios-green);">🏆 คนถูกหวย</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-label">วันนี้</div><div class="stat-value" id="winToday">0 คน</div></div>
+                        <div class="stat-card"><div class="stat-label">เมื่อวาน</div><div class="stat-value" style="color:var(--text-muted);" id="winYesterday">0 คน</div></div>
+                    </div>
+                    <div class="stats-grid" style="margin-top:10px;">
+                        <div class="stat-card"><div class="stat-label">อาทิตย์นี้</div><div class="stat-value" style="color:var(--ios-blue);" id="winWeek">0 คน</div></div>
+                        <div class="stat-card"><div class="stat-label">เดือนนี้</div><div class="stat-value" style="color:var(--ios-blue);" id="winMonth">0 คน</div></div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top:10px;">
+                    <h3 style="font-size:13px; font-weight:700; margin-bottom:10px; color:var(--ios-blue);">📋 ยอดขายแยกรายพนักงาน</h3>
+                    <div id="staffSalesContainer"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="backToAdminMenu()">⬅️ กลับเมนูหลัก</button>
+            </div>
+
+            <!-- ⏰ หน้าปรับเวลา -->
+            <div id="timeLimitPage" class="app-container hidden">
+                <div class="card">
+                    <h2 style="font-size:16px; font-weight:800; margin-bottom:16px; color:var(--ios-blue);">⏰ ตั้งเวลาปิดรับการขาย</h2>
+                    <div class="input-group">
+                        <label>🇱🇦 หวยลาว — ปิดรับเวลา</label>
+                        <input type="time" id="timeLao" value="20:15" style="font-size:22px; font-weight:800; text-align:center; color:var(--ios-green);">
+                    </div>
+                    <div class="input-group" style="margin-top:10px;">
+                        <label>🇹🇭 หวยไทย — ปิดรับเวลา</label>
+                        <input type="time" id="timeThai" value="15:15" style="font-size:22px; font-weight:800; text-align:center; color:var(--ios-blue);">
+                    </div>
+                    <button onclick="saveTimeLimits()" class="btn btn-success" style="margin-top:14px;">💾 บันทึกเวลา</button>
+                </div>
+                <button class="btn btn-secondary" onclick="backToAdminMenu()">⬅️ กลับเมนูหลัก</button>
+            </div>
+
+            <!-- 🔍 หน้าตรวจหวย (Super Admin) -->
+            <div id="checkWinPage" class="app-container hidden">
+                <div class="card">
+                    <h2 style="font-size:15px; font-weight:800; margin-bottom:12px; color:var(--ios-green);">🔍 ศูนย์ตรวจเช็คยอดคนถูกหวย</h2>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div class="input-group" style="margin:0;">
+                            <label>เลือกวันที่งวด</label>
+                            <input type="date" id="searchDate2" style="padding:10px; font-size:14px; font-weight:bold;">
+                        </div>
+                        <div class="input-group" style="margin:0;">
+                            <label>ระบุเลขรางวัล</label>
+                            <input type="text" id="searchWinNum2" placeholder="เลขรางวัล" maxlength="3" inputmode="numeric" style="text-align:center; font-weight:bold; padding:10px;">
+                        </div>
+                    </div>
+                    <div class="input-group" style="margin-bottom:12px;">
+                        <label>ระบุตำแหน่งรางวัล</label>
+                        <select id="searchPosition2" style="font-size:14px; padding:10px; font-weight:bold;">
+                            <option value="ทั้งหมด" selected>🌐 ตรวจเช็คทั้งหมด</option>
+                            <option value="บน">🔺 ตรวจเฉพาะรางวัล (บน)</option>
+                            <option value="ล่าง">🔻 ตรวจเฉพาะรางวัล (ล่าง)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="executeSearchWinners2()" style="margin-bottom:10px;">🔍 เริ่มการค้นหาคนถูกหวย</button>
+                    <div id="winnersResultList2" style="display:flex; flex-direction:column; gap:6px;"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="backToAdminMenu()">⬅️ กลับเมนูหลัก</button>
+            </div>
+
+            <!-- Modal เพิ่ม/แก้ไขพนักงาน -->
+            <div id="staffModal" class="modal-backdrop" style="display:none;">
+                <div class="card" style="width:100%; max-width:340px; padding:20px;">
+                    <h3 id="staffModalTitle" style="font-size:16px; font-weight:800; margin-bottom:16px; color:var(--ios-blue);">➕ เพิ่มพนักงานใหม่</h3>
+                    <div class="input-group">
+                        <label>ชื่อพนักงาน (NAME)</label>
+                        <input type="text" id="staffNameInput" placeholder="เช่น JEN" style="font-size:16px; text-align:center; font-weight:bold;">
+                    </div>
+                    <div class="input-group">
+                        <label>รหัส PIN (4 หลัก)</label>
+                        <input type="password" id="staffPinInput" placeholder="••••" maxlength="4" inputmode="numeric" style="font-size:24px; text-align:center; letter-spacing:10px; font-weight:bold;">
+                    </div>
+                    <input type="hidden" id="staffEditMode" value="add">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                        <button onclick="document.getElementById('staffModal').style.display='none'" class="btn btn-secondary">❌ ยกเลิก</button>
+                        <button onclick="submitStaffForm()" class="btn btn-primary">💾 บันทึก</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="menuPage" class="app-container hidden">
+                <div class="menu-grid">
+                    <div class="menu-item" id="menuSaleButtonBlock" onclick="goToRecorder()">
+                        <div class="menu-icon">📝</div>
+                        <div class="menu-title">บันทึกรายการหวย</div>
+                    </div>
+                    <div class="menu-item" onclick="goToDashboard()">
+                        <div class="menu-icon">📊</div>
+                        <div class="menu-title">รายงานแดชบอร์ด</div>
+                    </div>
+                    <div class="menu-item" onclick="goToBillHistory()">
+                        <div class="menu-icon">🧾</div>
+                        <div class="menu-title">ประวัติบิลของฉัน</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🧾 หน้าประวัติบิลพนักงาน -->
+            <div id="billHistoryPage" class="app-container hidden">
+                <div class="card">
+                    <h2 style="font-size:15px; font-weight:800; margin-bottom:12px; color:var(--ios-blue);">🧾 ประวัติบิลของฉัน</h2>
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label>ค้นหาเลขบิล</label>
+                        <input type="text" id="historySearchInput" placeholder="เช่น INV-260517-..." 
+                            style="font-size:14px;" oninput="filterBillHistory()">
+                    </div>
+                    <div id="billHistoryList" style="max-height:60vh; overflow-y:auto;"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="backToMenu()">⬅️ กลับหน้าเมนูหลัก</button>
+            </div>
+
+            <div id="recorderPage" class="app-container hidden">
+                <div class="card">
+                    <div class="segmented-control">
+                        <button id="typeLao" class="segment-btn active" onclick="setHuayType('ลาว')">หวยลาว</button>
+                        <button id="typeThai" class="segment-btn" onclick="setHuayType('ไทย')">หวยไทย</button>
+                    </div>
+
+                    <div class="input-group" style="margin-top: 10px; margin-bottom: 12px;">
+                        <label>ชื่อลูกค้าผู้ซื้อ</label>
+                        <input type="text" id="customerName" placeholder="ลูกค้าทั่วไป (หรือพิมพ์ชื่อระบุ)" style="font-weight: bold; padding: 12px;">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="input-group" style="margin:0;">
+                            <label>เลขเด็ด</label>
+                            <input type="text" id="huayNum" placeholder="กรอกตัวเลข" maxlength="3" inputmode="numeric" oninput="handleNumChange()" style="font-size:22px; font-weight:bold; text-align:center; color: var(--ios-blue); border-color: rgba(10,132,255,0.3);">
+                        </div>
+                        <div class="input-group" id="mainAmountInputSection" style="margin:0;">
+                            <label>จำนวนเงิน (₭)</label>
+                            <input type="text" id="huayAmt" placeholder="เงินแทง" inputmode="numeric" style="font-size:22px; font-weight:bold; text-align:center; color: var(--ios-green);">
+                        </div>
+                    </div>
+
+                    <div class="shortcut-amt-grid" id="mainShortcutAmtSection" style="margin-bottom: 14px;">
+                        <button class="btn-amt-chip" onclick="addMainQuickAmt(1000)">1K</button>
+                        <button class="btn-amt-chip" onclick="addMainQuickAmt(5000)">5K</button>
+                        <button class="btn-amt-chip" onclick="addMainQuickAmt(10000)">10K</button>
+                        <button class="btn-amt-chip" onclick="addMainQuickAmt(20000)">20K</button>
+                        <button class="btn-amt-chip" onclick="addMainQuickAmt(50000)">50K</button>
+                    </div>
+
+                    <button class="btn btn-primary" id="mainAddBillBtn" onclick="addItemsToCurrentBillDirect()" style="width: 100%; font-weight: bold; font-size: 16px; height: 48px;">➕ เพิ่มรายการลงบิล</button>
+                </div>
+
+                <div class="card" style="padding:12px; flex-grow:1; display:flex; flex-direction:column; min-height: 240px;">
+                    <div style="max-height:160px; overflow-y:auto; flex-grow:1;">
+                        <table class="table-bill" id="billTableItems">
+                            <thead>
+                                <tr>
+                                    <th>เลข</th>
+                                    <th>ประเภท</th>
+                                    <th style="text-align:right;">เงิน</th>
+                                    <th style="text-align:center;">ลบ</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:8px; border-top:1px dashed var(--border-color);">
+                        <span style="font-weight:700; color:var(--text-muted); font-size:13px;">รวมยอดก้อนบิลนี้:</span>
+                        <strong style="color:var(--ios-green); font-size:18px;" id="currentBillTotalLabel">0 ₭</strong>
+                    </div>
+                    <button class="btn btn-success" onclick="processSubmitFinalSale()" style="margin-top:10px; height:46px;">✅ บันทึกยอดและออกบิล</button>
+                    <button class="btn btn-danger" onclick="clearAllBillItems()" style="margin-top:6px; height:40px; font-size:13px;">🗑️ ล้างรายการทั้งหมด</button>
+                </div>
+                <button class="btn btn-secondary" onclick="backToMenu()">⬅️ กลับหน้าเมนูหลัก</button>
+            </div>
+
+            <div id="dashboardPage" class="app-container hidden">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">ยอดขายวันนี้</div>
+                        <div class="stat-value" id="statToday">0 ₭</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">ยอดขายเมื่อวาน</div>
+                        <div class="stat-value" style="color:var(--text-muted);" id="statYesterday">0 ₭</div>
+                    </div>
+                </div>
+                <div class="stats-grid" style="margin-top:10px;">
+                    <div class="stat-card">
+                        <div class="stat-label">งวดปัจจุบัน (30 วัน)</div>
+                        <div class="stat-value" style="color:var(--ios-blue);" id="statMonth">0 ₭</div>
+                    </div>
+                </div>
+                <div class="card hidden" id="superAdminStaffSection" style="margin-top:14px;">
+                    <h3 style="font-size:14px; font-weight:700; margin-bottom:10px; color:var(--ios-blue);">📊 ยอดขายแยกรายพนักงาน</h3>
+                    <div id="staffTotalListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+                </div>
+
+                <div class="card" style="margin-top:14px;">
+                    <h3 style="font-size:14px; font-weight:700; margin-bottom:10px; color:var(--ios-green);">🔍 ศูนย์ตรวจเช็คยอดคนถูกหวย</h3>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 10px;">
+                        <div class="input-group" style="margin:0;">
+                            <label>เลือกวันที่งวด</label>
+                            <input type="date" id="searchDate" style="padding:10px; font-size:14px; font-weight:bold;">
+                        </div>
+                        <div class="input-group" style="margin:0;">
+                            <label>ระบุเลขรางวัล</label>
+                            <input type="text" id="searchWinNum" placeholder="เลขรางวัล" maxlength="3" inputmode="numeric" style="text-align:center; font-weight:bold; padding:10px;">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom: 12px;">
+                        <label>ระบุตำแหน่งรางวัล (สำหรับหวยไทย)</label>
+                        <select id="searchPosition" style="font-size: 14px; padding: 10px; font-weight: bold; background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 10px; width: 100%;">
+                            <option value="ทั้งหมด" selected>🌐 ตรวจเช็คทั้งหมด (รวม/บน/ล่าง)</option>
+                            <option value="บน">🔺 ตรวจเฉพาะรางวัล (บน)</option>
+                            <option value="ล่าง">🔻 ตรวจเฉพาะรางวัล (ล่าง)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="executeSearchWinners()" style="padding:12px; font-size:14px; font-weight: bold; width: 100%; margin-bottom: 10px;">🔍 เริ่มการค้นหาคนถูกหวย</button>
+                    <button class="btn btn-secondary" onclick="backToMenu()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: bold; background: #334155; color: #fff; margin-bottom: 14px;">⬅️ ย้อนกลับไปหน้าเมนูหลัก</button>
+
+                    <div id="winnersResultList" style="max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
+                </div>
+            </div>
+
+            <div id="adminSettingsPage" class="app-container hidden">
+                <div class="card">
+                    <h2 style="font-size:16px; font-weight:700; margin-bottom:14px; color:var(--ios-pink);">⚙️ ตั้งค่าเวลาหมดเขตรับชื้อหวย</h2>
+                    <div class="input-group">
+    <label>บัญชีผู้ใช้พนักงาน</label>
+    <input type="text" id="loginUser" placeholder="พิมพ์ชื่อผู้ใช้ของคุณ" style="font-size: 17px; text-align: center;">
+</div>
+                    <div class="input-group" style="margin-top:10px;">
+                        <label>เวลาปิดรับหวยไทยประจำวัน</label>
+                        <input type="time" id="limitThaiTime" style="font-size:16px; font-weight:bold; text-align:center;">
+                    </div>
+                    <button class="btn btn-success" onclick="submitSaveTimeLimits()" style="margin-top:14px;">💾 บันทึกเวลาควบคุม</button>
+                </div>
+                <button class="btn btn-secondary" onclick="backToMenu()">⬅️ กลับหน้าเมนูหลัก</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="lotteryInputModal" class="modal-backdrop" style="display: none;">
+        <div class="card" style="width: 100%; max-width: 360px; background: #131926; border: 2px solid #1e293b; border-radius: 20px; padding: 20px; animation: fadeIn 0.25s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #1e293b; padding-bottom:10px;">
+                <span style="font-size:15px; font-weight:700; color:#fff;">หวยไทยเลข 2 ตัว: <strong id="popupDisplayNum" style="color:var(--ios-blue); font-size:20px;">--</strong></span>
+                <span class="badge" style="background:var(--ios-pink); color:#fff; font-size:12px; padding:4px 10px;">THAI MODE</span>
+            </div>
+
+            <div class="segmented-control" id="popupPositionControl">
+                <button id="popPosTop" class="segment-btn active" onclick="setPopupPosition('บน')">บน</button>
+                <button id="popPosBottom" class="segment-btn" onclick="setPopupPosition('ล่าง')">ล่าง</button>
+                <button id="popPosBoth" class="segment-btn" onclick="setPopupPosition('บน+ล่าง')">บน+ล่าง</button>
+            </div>
+
+            <div class="input-group" id="popSingleAmountSection" style="margin-top:14px;">
+                <label style="color:#cbd5e1; font-weight:bold;">ระบุจำนวนเงินแทง (₭)</label>
+                <input type="text" id="popHuayAmt" placeholder="ระบุยอดเงินเดิมพัน" inputmode="numeric" style="font-size:18px; font-weight:bold; text-align:center;">
+            </div>
+
+            <div style="display: none; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;" id="popDoubleAmountSection">
+                <div class="input-group" style="margin:0;">
+                    <label style="color:var(--ios-blue); font-weight:bold;">จำนวนเงิน (บน)</label>
+                    <input type="text" id="popHuayAmtTop" placeholder="เงินบน" inputmode="numeric" style="font-size:18px; font-weight:bold; text-align:center; border: 1px solid rgba(0,122,255,0.4);">
+                </div>
+                <div class="input-group" style="margin:0;">
+                    <label style="color:var(--ios-pink); font-weight:bold;">จำนวนเงิน (ล่าง)</label>
+                    <input type="text" id="popHuayAmtBottom" placeholder="เงินล่าง" inputmode="numeric" style="font-size:18px; font-weight:bold; text-align:center; border: 1px solid rgba(255,45,85,0.4);">
+                </div>
+            </div>
+
+            <div class="shortcut-amt-grid" style="margin-top:14px; margin-bottom:18px;">
+                <button class="btn-amt-chip" onclick="addPopupQuickAmt(1000)">1K</button>
+                <button class="btn-amt-chip" onclick="addPopupQuickAmt(5000)">5K</button>
+                <button class="btn-amt-chip" onclick="addPopupQuickAmt(10000)">10K</button>
+                <button class="btn-amt-chip" onclick="addPopupQuickAmt(20000)">20K</button>
+                <button class="btn-amt-chip" onclick="addPopupQuickAmt(50000)">50K</button>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button class="btn btn-secondary" onclick="closeLotteryInputModal()" style="font-weight:bold;">❌ ยกเลิก</button>
+                <button class="btn btn-primary" onclick="confirmAddItemsFromPopup()" style="font-weight:bold; background:var(--ios-green);">➕ ตกลงเพิ่มบิล</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="slipModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content-card">
+            <div id="printSlipCaptureArea" style="background: #ffffff; color: #000000; padding: 16px; border-radius: 12px; width: 100%; max-width: 340px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.15); font-size: 11px;">
+                <div style="text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; margin-bottom: 8px;">
+                    <h2 style="font-size: 20px; font-weight: 800; color: #000; margin: 0;">HUAYPRO 2</h2>
+                    <div style="font-size: 13px; font-weight: 700; color: #334155; margin-top: 2px;">ใบบินขายหวยดิจิทัล</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: #334155; font-weight: 600; margin-bottom: 2px;"><span>วันที่: <strong id="slipDate">16 May 2026</strong></span><span>เวลา: <strong id="slipTime">14:30:15</strong></span></div>
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: #334155; font-weight: 600; border-bottom: 1px dashed #cbd5e1; padding-bottom: 6px; margin-bottom: 8px;"><span>พนักงาน: <strong id="slipStaff">JEN</strong></span><span>บิล: <strong id="slipInvoiceId">INV-0001</strong></span></div>
+                <div class="slip-grid-container-triple" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; min-height: 280px;"><div class="slip-column-block-nano" id="slipCol1"></div><div class="slip-column-block-nano" id="slipCol2"></div><div class="slip-column-block-nano" id="slipCol3"></div></div>
+                <div style="border-top: 2px solid #000000; border-bottom: 2px solid #000000; margin-top: 10px; padding: 6px 0; text-align: center;"><span style="font-size: 13px; font-weight: 700;">ยอดรวมเงินทั้งหมด: <strong id="slipTotalAmt" style="font-size: 18px; font-weight: 900;">0 ₭</strong></span></div>
+                <div style="text-align: center; font-size: 9px; color: #475569; margin-top: 8px; font-weight: bold; letter-spacing: 0.3px;">*** กดค้างที่รูป 1 วินาที เพื่อคัดลอกรูปใบเสร็จ ***</div>
+            </div>
+            <div style="margin-top:15px; width:100%; max-width:340px;"><button class="btn btn-danger" onclick="closeSlipModal()">❌ ปิดหน้าต่างใบบินเพื่อขายต่อ</button></div>
+        </div>
+    </div>
+    <div id="statusModal" class="modal-backdrop" style="display: none;"><div class="status-card" style="text-align: center; padding: 25px;"><div id="statusIcon" style="font-size: 40px; margin-bottom: 10px;">💎</div><h3 id="statusTitle" style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">ระบบงาน</h3><p id="statusMessage" style="color: var(--text-muted); font-size: 13px; margin: 0;"></p></div></div>
+    <script src="app.js"></script>
+</body>
+</html>
