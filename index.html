@@ -47,8 +47,10 @@
                     <!-- Username -->
                     <div style="position:relative; margin-bottom:14px;">
                         <div style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:16px; opacity:0.6;">👤</div>
-                        <input type="text" id="loginUser" placeholder="ชื่อพนักงาน เช่น JEN"
-                            style="padding-left:44px; font-size:15px; font-weight:600; height:52px; border-radius:14px;"
+                        <input type="text" id="loginUser" placeholder="ชื่อพนักงาน"
+                            style="padding-left:44px; font-size:15px; font-weight:600; height:52px; border-radius:14px; text-transform:uppercase;"
+                            autocapitalize="characters" autocorrect="off" spellcheck="false"
+                            oninput="this.value=this.value.toUpperCase()"
                             onkeydown="if(event.key==='Enter') focusPinBox(0)">
                     </div>
 
@@ -79,16 +81,22 @@
                     <!-- Username -->
                     <div style="position:relative; margin-bottom:14px;">
                         <div style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:16px; opacity:0.6;">👑</div>
-                        <input type="text" id="adminUsername" placeholder="Username Super Admin"
+                        <input type="text" id="adminUsername" placeholder="Username"
                             style="padding-left:44px; font-size:15px; font-weight:600; height:52px; border-radius:14px;"
                             onkeydown="if(event.key==='Enter') document.getElementById('adminPassword').focus()">
                     </div>
                     <!-- Password -->
                     <div style="position:relative; margin-bottom:8px;">
                         <div style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:16px; opacity:0.6;">🔒</div>
-                        <input type="password" id="adminPassword" placeholder="รหัสผ่าน Super Admin"
-                            style="padding-left:44px; font-size:15px; font-weight:600; height:52px; border-radius:14px;"
+                        <input type="password" id="adminPassword" placeholder="รหัสผ่าน"
+                            style="padding-left:44px; padding-right:48px; font-size:15px; font-weight:600; height:52px; border-radius:14px;"
                             onkeydown="if(event.key==='Enter') handleLogin()">
+                        <button type="button" onclick="toggleAdminPasswordVisibility()"
+                            id="adminPassToggleBtn"
+                            style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:20px; padding:4px; opacity:0.5; transition:opacity 0.2s;"
+                            onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.5'">
+                            👁️
+                        </button>
                     </div>
                 </div>
 
@@ -129,10 +137,6 @@
                         <div class="menu-item" onclick="goToAdminPage('staffSalesPage')">
                             <div class="menu-icon">📋</div>
                             <div class="menu-title">ยอดขายพนักงาน</div>
-                        </div>
-                        <div class="menu-item" onclick="goToAdminPage('timeLimitPage')">
-                            <div class="menu-icon">⏰</div>
-                            <div class="menu-title">ปรับเวลา</div>
                         </div>
                         <div class="menu-item" onclick="goToAdminPage('checkWinPage')">
                             <div class="menu-icon">🔍</div>
@@ -272,44 +276,6 @@
                 </div>
             </div>
 
-            <!-- 📊 หน้าประวัติการขาย -->
-            <div id="salesReportPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
-                <div class="app-container" style="flex:1;">
-                <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-label">ยอดขายวันนี้</div><div class="stat-value" id="rptToday">0 ₭</div></div>
-                    <div class="stat-card"><div class="stat-label">ยอดขายเมื่อวาน</div><div class="stat-value" style="color:var(--text-muted);" id="rptYesterday">0 ₭</div></div>
-                </div>
-                <div class="stats-grid" style="margin-top:10px;">
-                    <div class="stat-card"><div class="stat-label">ยอดขายอาทิตย์นี้</div><div class="stat-value" style="color:var(--ios-blue);" id="rptWeek">0 ₭</div></div>
-                    <div class="stat-card"><div class="stat-label">ยอดขายเดือนนี้</div><div class="stat-value" style="color:var(--ios-blue);" id="rptMonth">0 ₭</div></div>
-                </div>
-                <div class="stats-grid" style="margin-top:10px;">
-                    <div class="stat-card"><div class="stat-label">ยอดขายปีนี้</div><div class="stat-value" style="color:var(--ios-blue);" id="rptYear">0 ₭</div></div>
-                    <div class="stat-card"><div class="stat-label">บิลทั้งหมด</div><div class="stat-value" style="color:var(--text-muted);" id="rptBills">0 บิล</div></div>
-                </div>
-                <div class="card" style="margin-top:10px; border:1px solid rgba(48,209,88,0.3);">
-                    <h3 style="font-size:13px; font-weight:700; margin-bottom:10px; color:var(--ios-green);">🏆 คนถูกหวย</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card"><div class="stat-label">วันนี้</div><div class="stat-value" id="winToday">0 คน</div></div>
-                        <div class="stat-card"><div class="stat-label">เมื่อวาน</div><div class="stat-value" style="color:var(--text-muted);" id="winYesterday">0 คน</div></div>
-                    </div>
-                    <div class="stats-grid" style="margin-top:10px;">
-                        <div class="stat-card"><div class="stat-label">อาทิตย์นี้</div><div class="stat-value" style="color:var(--ios-blue);" id="winWeek">0 คน</div></div>
-                        <div class="stat-card"><div class="stat-label">เดือนนี้</div><div class="stat-value" style="color:var(--ios-blue);" id="winMonth">0 คน</div></div>
-                    </div>
-                </div>
-                <div class="card" style="margin-top:10px;">
-                    <h3 style="font-size:13px; font-weight:700; margin-bottom:10px; color:var(--ios-blue);">📋 ยอดขายแยกรายพนักงาน</h3>
-                    <div id="staffSalesContainer"></div>
-                </div>
-                </div>
-                <div class="bottom-bar">
-                    <button class="bb-btn bb-secondary" onclick="backToAdminMenu()">⬅️ กลับเมนูหลัก</button>
-                </div>
-            </div>
-
-            <!-- ⏰ หน้าปรับเวลา -->
-            <!-- ⚙️ หน้าตั้งค่า -->
             <!-- ⚙️ หน้าตั้งค่า — เมนูย่อย -->
             <div id="settingsPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
                 <div class="app-container" style="flex:1; justify-content:center;">
@@ -317,6 +283,10 @@
                         <div class="menu-item" onclick="goToSubSetting('payoutSettingPage')">
                             <div class="menu-icon">💰</div>
                             <div class="menu-title">อัตราจ่ายรางวัล</div>
+                        </div>
+                        <div class="menu-item" onclick="goToSubSetting('timeLimitPage')">
+                            <div class="menu-icon">⏰</div>
+                            <div class="menu-title">ปรับเวลา</div>
                         </div>
                         <div class="menu-item" onclick="goToSubSetting('changePassPage')">
                             <div class="menu-icon">🔐</div>
@@ -421,15 +391,16 @@
                     </div>
                 </div>
                 <div class="bottom-bar">
-                    <button class="bb-btn bb-secondary" onclick="backToAdminMenu()">⬅️ กลับ</button>
+                    <button class="bb-btn bb-secondary" onclick="goToAdminPage('settingsPage')">⬅️ กลับ</button>
                     <button class="bb-btn bb-success" onclick="saveTimeLimits()">💾 บันทึกเวลา</button>
                 </div>
             </div>
 
             <!-- 🔍 หน้าตรวจหวย (Super Admin) -->
             <div id="checkWinPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
-                <div class="app-container" style="flex:1;">
-                    <div class="card">
+                <!-- ฟอร์มค้นหา — fixed ด้านบน -->
+                <div style="padding:16px 16px 0; flex-shrink:0;">
+                    <div class="card" style="margin-bottom:0;">
                         <h2 style="font-size:15px; font-weight:800; margin-bottom:12px; color:var(--ios-green);">🔍 ศูนย์ตรวจเช็คยอดคนถูกหวย</h2>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                             <div class="input-group" style="margin:0;">
@@ -449,12 +420,21 @@
                                 <option value="ล่าง">🔻 ตรวจเฉพาะรางวัล (ล่าง)</option>
                             </select>
                         </div>
-                        <div id="winnersResultList2" style="display:flex; flex-direction:column; gap:6px;"></div>
+                        <!-- ปุ่มค้นหาอยู่ใน card เหมือนหน้า Staff -->
+                        <button onclick="executeSearchWinners2()"
+                            style="width:100%; background:var(--ios-blue); color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:700; cursor:pointer; transition:transform 0.1s ease;"
+                            onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
+                            🔍 เริ่มการค้นหาคนถูกหวย
+                        </button>
                     </div>
                 </div>
+                <!-- ผลลัพธ์ scroll ได้ -->
+                <div style="flex:1; overflow-y:auto; padding:12px 16px;">
+                    <div id="winnersResultList2" style="display:flex; flex-direction:column; gap:6px;"></div>
+                </div>
+                <!-- Bottom bar — แค่ปุ่มกลับ -->
                 <div class="bottom-bar">
-                    <button class="bb-btn bb-secondary" onclick="backToAdminMenu()">⬅️ กลับ</button>
-                    <button class="bb-btn bb-primary" onclick="executeSearchWinners2()">🔍 ค้นหาคนถูก</button>
+                    <button class="bb-btn bb-secondary" onclick="backToAdminMenu()">⬅️ กลับหน้าเมนูหลัก</button>
                 </div>
             </div>
 
@@ -464,7 +444,10 @@
                     <h3 id="staffModalTitle" style="font-size:16px; font-weight:800; margin-bottom:16px; color:var(--ios-blue);">➕ เพิ่มพนักงานใหม่</h3>
                     <div class="input-group">
                         <label>ชื่อพนักงาน (NAME)</label>
-                        <input type="text" id="staffNameInput" placeholder="เช่น JEN" style="font-size:16px; text-align:center; font-weight:bold;">
+                        <input type="text" id="staffNameInput" placeholder="เช่น JEN"
+                            style="font-size:16px; text-align:center; font-weight:bold; text-transform:uppercase;"
+                            autocapitalize="characters" autocorrect="off" spellcheck="false"
+                            oninput="this.value=this.value.toUpperCase()">
                     </div>
                     <div class="input-group">
                         <label>รหัส PIN (4 หลัก)</label>
@@ -574,7 +557,10 @@
 
                     <div class="input-group" style="margin-top: 10px; margin-bottom: 12px;">
                         <label>ชื่อลูกค้าผู้ซื้อ</label>
-                        <input type="text" id="customerName" placeholder="ลูกค้าทั่วไป (หรือพิมพ์ชื่อระบุ)" style="font-weight: bold; padding: 12px;">
+                        <input type="text" id="customerName" placeholder="ชื่อลูกค้า"
+                            style="font-weight: bold; padding: 12px; text-transform:uppercase;"
+                            autocapitalize="characters" autocorrect="off" spellcheck="false"
+                            oninput="this.value=this.value.toUpperCase()">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
@@ -755,7 +741,59 @@
             <div style="margin-top:15px; width:100%; max-width:340px;"><button class="btn btn-danger" onclick="closeSlipModal()">❌ ปิดหน้าต่างใบบินเพื่อขายต่อ</button></div>
         </div>
     </div>
-    <div id="statusModal" class="modal-backdrop" style="display: none;"><div class="status-card" style="text-align: center; padding: 25px;"><div id="statusIcon" style="font-size: 40px; margin-bottom: 10px;">💎</div><h3 id="statusTitle" style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">ระบบงาน</h3><p id="statusMessage" style="color: var(--text-muted); font-size: 13px; margin: 0;"></p></div></div>
+    <div id="statusModal" class="modal-backdrop" style="display:none;">
+        <div class="status-card" style="text-align:center; padding:28px 24px; min-width:240px;">
+            <!-- SVG animated icon -->
+            <div id="statusIconWrap" style="width:72px; height:72px; margin:0 auto 14px; position:relative;">
+                <!-- วงกลม + ติ๊กถูก (success) -->
+                <svg id="statusSvgSuccess" viewBox="0 0 72 72" style="display:none; position:absolute; top:0; left:0;" width="72" height="72">
+                    <circle cx="36" cy="36" r="32" fill="none" stroke="#30d158" stroke-width="4"
+                        stroke-dasharray="201" stroke-dashoffset="201"
+                        style="transition:stroke-dashoffset 0.45s ease-out;">
+                    </circle>
+                    <polyline points="20,37 31,48 52,26" fill="none" stroke="#30d158" stroke-width="4.5"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        stroke-dasharray="44" stroke-dashoffset="44"
+                        style="transition:stroke-dashoffset 0.35s ease-out 0.35s;">
+                    </polyline>
+                </svg>
+                <!-- วงกลม + กากบาท (fail) -->
+                <svg id="statusSvgFail" viewBox="0 0 72 72" style="display:none; position:absolute; top:0; left:0;" width="72" height="72">
+                    <circle cx="36" cy="36" r="32" fill="none" stroke="#ff453a" stroke-width="4"
+                        stroke-dasharray="201" stroke-dashoffset="201"
+                        style="transition:stroke-dashoffset 0.45s ease-out;">
+                    </circle>
+                    <line x1="23" y1="23" x2="49" y2="49" stroke="#ff453a" stroke-width="4.5"
+                        stroke-linecap="round"
+                        stroke-dasharray="37" stroke-dashoffset="37"
+                        style="transition:stroke-dashoffset 0.28s ease-out 0.35s;">
+                    </line>
+                    <line x1="49" y1="23" x2="23" y2="49" stroke="#ff453a" stroke-width="4.5"
+                        stroke-linecap="round"
+                        stroke-dasharray="37" stroke-dashoffset="37"
+                        style="transition:stroke-dashoffset 0.28s ease-out 0.55s;">
+                    </line>
+                </svg>
+                <!-- warning (สำหรับ alert ทั่วไป) -->
+                <svg id="statusSvgWarn" viewBox="0 0 72 72" style="display:none; position:absolute; top:0; left:0;" width="72" height="72">
+                    <circle cx="36" cy="36" r="32" fill="none" stroke="#ff9f0a" stroke-width="4"
+                        stroke-dasharray="201" stroke-dashoffset="201"
+                        style="transition:stroke-dashoffset 0.45s ease-out;">
+                    </circle>
+                    <line x1="36" y1="22" x2="36" y2="40" stroke="#ff9f0a" stroke-width="4.5"
+                        stroke-linecap="round"
+                        stroke-dasharray="20" stroke-dashoffset="20"
+                        style="transition:stroke-dashoffset 0.25s ease-out 0.35s;">
+                    </line>
+                    <circle cx="36" cy="50" r="2.5" fill="#ff9f0a" opacity="0"
+                        style="transition:opacity 0.2s ease 0.6s;">
+                    </circle>
+                </svg>
+            </div>
+            <h3 id="statusTitle" style="font-size:17px; font-weight:800; margin-bottom:6px; letter-spacing:0.3px;">ระบบงาน</h3>
+            <p id="statusMessage" style="color:var(--text-muted); font-size:13px; margin:0; white-space:pre-line; line-height:1.6;"></p>
+        </div>
+    </div>
     <script src="app.js"></script>
 </body>
 </html>

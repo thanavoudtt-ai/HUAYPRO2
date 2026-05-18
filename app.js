@@ -204,6 +204,16 @@ function clearPinBoxes() {
     if(hidden) hidden.value = '';
 }
 
+function toggleAdminPasswordVisibility() {
+    const input = document.getElementById('adminPassword');
+    const btn   = document.getElementById('adminPassToggleBtn');
+    if(!input) return;
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    btn.textContent = isHidden ? '🙈' : '👁️';
+    btn.style.opacity = isHidden ? '1' : '0.5';
+}
+
 function toggleLoginMode() {
     isAdminLoginMode = !isAdminLoginMode;
     const staffSection = document.getElementById('staffLoginSection');
@@ -261,9 +271,6 @@ function initRecorderPage() {
     generateBillId();
 }
 
-// alias ที่ปุ่มเมนูเรียก
-function goToRecorder() { initRecorderPage(); }
-
 // 🗑️ ล้างรายการทั้งหมดในบิล
 function clearAllBillItems() {
     if(currentBillItems.length === 0) return;
@@ -274,12 +281,6 @@ function clearAllBillItems() {
 
 // 🧾 ประวัติบิลพนักงาน
 let _allBillHistory = [];
-
-function goToBillHistory() {
-    hideAllPages();
-    document.getElementById('billHistoryPage').classList.remove('hidden');
-    loadBillHistory();
-}
 
 function loadBillHistory() {
     const list = document.getElementById('billHistoryList');
@@ -730,52 +731,71 @@ function showReceiptSlipDirect(billId, staffName, dateStr, items) {
     const timeStr = now.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
     const total = items.reduce((s, it) => s + it.price, 0);
 
-    // 5 คอลัมน์ คอลัมน์ละ 10 รายการ
-    const cols = [items.slice(0,10), items.slice(10,20), items.slice(20,30), items.slice(30,40), items.slice(40,50)];
-    const maxPerCol = Math.max(...cols.map(c => c.length));
+    // ขนาดคงที่ 9:16 (540×960) ไม่ยืดหดตามเนื้อหา
+    const W = 540, H = 960;
 
-    let numSize, typeSize, amtSize, rowPad;
-    if(maxPerCol <= 4)       { numSize=10; typeSize=7; amtSize=9; rowPad=3; }
-    else if(maxPerCol <= 7)  { numSize=9;  typeSize=6; amtSize=8; rowPad=2; }
-    else                     { numSize=8;  typeSize=6; amtSize=7; rowPad=1; }
+    // 5 คอลัมน์ คอลัมน์ละ 10 รายการ (max 50 รายการ)
+    const cols = [items.slice(0,10), items.slice(10,20), items.slice(20,30), items.slice(30,40), items.slice(40,50)];
+
+    // font size คงที่ ไม่ขึ้นกับจำนวน เพราะ canvas size ล็อคแล้ว
+    const numSize=13, typeSize=9, amtSize=11, rowPad=4;
 
     function renderCol(arr) {
-        return arr.map(it => {
-            const posLabel = (it.position && it.position !== 'รวม') ? ' '+it.position : '';
-            return `<div style="padding:${rowPad}px 0; border-bottom:1px solid #e2e8f0;">
-                <div style="font-size:${numSize}px; font-weight:900; color:#0f172a; line-height:1.1;">${it.num}</div>
-                <div style="font-size:${typeSize}px; color:#94a3b8; line-height:1.1;">${it.type||''}${posLabel}</div>
-                <div style="font-size:${amtSize}px; font-weight:700; color:#1d4ed8; line-height:1.1;">${(it.price/1000).toFixed(0)}K</div>
-            </div>`;
-        }).join('');
+        // แต่ละ col มีพื้นที่ 10 slot คงที่ แม้ข้อมูลน้อยก็ไม่ยุบ
+        const rows = [];
+        for(let i = 0; i < 10; i++) {
+            const it = arr[i];
+            if(it) {
+                const posLabel = (it.position && it.position !== 'รวม') ? ' '+it.position : '';
+                rows.push(`<div style="padding:${rowPad}px 0; border-bottom:1px solid #e2e8f0; flex:1;">
+                    <div style="font-size:${numSize}px; font-weight:900; color:#0f172a; line-height:1.2;">${it.num}</div>
+                    <div style="font-size:${typeSize}px; color:#94a3b8; line-height:1.1;">${it.type||''}${posLabel}</div>
+                    <div style="font-size:${amtSize}px; font-weight:700; color:#1d4ed8; line-height:1.2;">${(it.price/1000).toFixed(0)}K</div>
+                </div>`);
+            } else {
+                // slot ว่าง — ยึดพื้นที่ไว้
+                rows.push(`<div style="flex:1; border-bottom:1px solid #f1f5f9; padding:${rowPad}px 0;"></div>`);
+            }
+        }
+        return `<div style="display:flex; flex-direction:column; height:100%;">${rows.join('')}</div>`;
     }
 
     const slipHtml = `
-        <div id="receiptSlipCapture" style="background:#fff;color:#000;padding:10px;border-radius:12px;width:300px;font-family:'Noto Sans Thai',sans-serif;">
-            <div style="text-align:center;padding-bottom:5px;margin-bottom:5px;border-bottom:2px dashed #cbd5e1;">
-                <div style="font-size:15px;font-weight:900;color:#000;letter-spacing:1px;">HUAYPRO 2</div>
-                <div style="font-size:8px;color:#64748b;">ใบบินขายหวยดิจิทัล</div>
+        <div id="receiptSlipCapture" style="
+            background:#fff; color:#000;
+            width:${W}px; height:${H}px;
+            padding:20px 16px 16px;
+            border-radius:16px;
+            font-family:'Noto Sans Thai',sans-serif;
+            display:flex; flex-direction:column;
+            box-sizing:border-box; overflow:hidden;">
+
+            <!-- Header -->
+            <div style="text-align:center; padding-bottom:8px; margin-bottom:8px; border-bottom:2px dashed #cbd5e1; flex-shrink:0;">
+                <div style="font-size:22px; font-weight:900; color:#000; letter-spacing:2px;">HUAYPRO 2</div>
+                <div style="font-size:11px; color:#64748b;">ใบบินขายหวยดิจิทัล</div>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:8px;color:#475569;margin-bottom:2px;">
+
+            <!-- Meta -->
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; margin-bottom:4px; flex-shrink:0;">
                 <span>วันที่: <strong>${dateStr}</strong></span>
                 <span>เวลา: <strong>${timeStr}</strong></span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:8px;color:#475569;padding-bottom:4px;margin-bottom:4px;border-bottom:1px dashed #cbd5e1;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; padding-bottom:6px; margin-bottom:8px; border-bottom:1px dashed #cbd5e1; flex-shrink:0;">
                 <span>พนักงาน: <strong>${staffName}</strong></span>
-                <span style="color:#0a84ff;font-weight:700;font-size:7px;">${billId}</span>
+                <span style="color:#0a84ff; font-weight:700; font-size:10px;">${billId}</span>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:2px;margin-bottom:6px;">
-                <div>${renderCol(cols[0])}</div>
-                <div>${renderCol(cols[1])}</div>
-                <div>${renderCol(cols[2])}</div>
-                <div>${renderCol(cols[3])}</div>
-                <div>${renderCol(cols[4])}</div>
+
+            <!-- 5 คอลัมน์ เต็มพื้นที่ที่เหลือ -->
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr; gap:4px; flex:1; overflow:hidden;">
+                ${cols.map(c => renderCol(c)).join('')}
             </div>
-            <div style="border-top:2px solid #000;border-bottom:2px solid #000;padding:4px 0;text-align:center;margin-bottom:4px;">
-                <span style="font-size:10px;font-weight:700;">ยอดรวมเงินทั้งหมด: </span>
-                <strong style="font-size:14px;font-weight:900;">${total.toLocaleString()} ₭</strong>
+
+            <!-- Footer ยอดรวม -->
+            <div style="border-top:2px solid #000; border-bottom:2px solid #000; padding:8px 0; text-align:center; margin-top:8px; flex-shrink:0;">
+                <span style="font-size:13px; font-weight:700;">ยอดรวมเงินทั้งหมด: </span>
+                <strong style="font-size:20px; font-weight:900;">${total.toLocaleString()} ₭</strong>
             </div>
-            <div style="text-align:center;font-size:7px;color:#94a3b8;">*** กดค้างที่รูป 1 วินาที เพื่อคัดลอกรูปใบเสร็จ ***</div>
         </div>`;
 
     let modal = document.getElementById('receiptSlipModal');
@@ -783,35 +803,63 @@ function showReceiptSlipDirect(billId, staffName, dateStr, items) {
         modal = document.createElement('div');
         modal.id = 'receiptSlipModal';
         modal.className = 'modal-backdrop';
-        modal.style.cssText = 'display:none;z-index:1001;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:12px;';
+        modal.style.cssText = 'display:none;z-index:1001;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:12px;overflow-y:auto;';
         modal.innerHTML = `
-            <div id="receiptSlipContent"></div>
-            <button onclick="captureReceiptSlip()" style="background:#0a84ff;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:300px;">📸 บันทึกรูปใบบิน</button>
-            <button onclick="closeReceiptAndReset()" style="background:#ff453a;color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:300px;">❌ ปิดหน้าต่างใบบินเพื่อขายต่อ</button>`;
+            <div id="receiptSlipContent" style="transform-origin:top center;"></div>
+            <div id="receiptSlipImgWrap" style="display:none; flex-direction:column; align-items:center; gap:8px;">
+                <p style="color:#fff; font-size:12px; text-align:center; margin:0; opacity:0.8;">👆 กดค้างที่รูปเพื่อบันทึก / Copy</p>
+                <img id="receiptSlipImg" style="max-width:300px; width:100%; border-radius:12px; display:block; -webkit-user-select:auto; user-select:auto;" draggable="true">
+            </div>
+            <button id="receiptRenderBtn" onclick="renderReceiptToImage()" style="background:#0a84ff;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:300px;">📸 แปลงเป็นรูปเพื่อบันทึก</button>
+            <button onclick="closeReceiptAndReset()" style="background:#ff453a;color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:300px;">❌ ปิดและขายต่อ</button>`;
         document.body.appendChild(modal);
     }
     document.getElementById('receiptSlipContent').innerHTML = slipHtml;
-    modal.style.display = 'flex';
 
-    // กดค้าง 1 วินาที → บันทึกรูป
-    const el = document.getElementById('receiptSlipCapture');
-    let holdTimer = null;
-    el.addEventListener('touchstart', () => { holdTimer = setTimeout(() => captureReceiptSlip(), 1000); });
-    el.addEventListener('touchend',   () => { if(holdTimer) clearTimeout(holdTimer); });
-    el.addEventListener('touchmove',  () => { if(holdTimer) clearTimeout(holdTimer); });
+    // scale ลงให้พอดีหน้าจอมือถือ (540px → ~300px display)
+    const scaleEl = document.getElementById('receiptSlipContent');
+    const displayW = Math.min(window.innerWidth - 24, 300);
+    const scale = displayW / W;
+    scaleEl.style.transform = `scale(${scale})`;
+    scaleEl.style.width = W + 'px';
+    scaleEl.style.marginBottom = `-${H * (1 - scale)}px`; // ดึงพื้นที่คืน
+
+    // reset state ทุกครั้งที่เปิด
+    document.getElementById('receiptSlipImgWrap').style.display = 'none';
+    document.getElementById('receiptSlipContent').style.display = 'block';
+    const rBtn = document.getElementById('receiptRenderBtn');
+    if(rBtn) { rBtn.style.display = 'block'; rBtn.innerText = '📸 แปลงเป็นรูปเพื่อบันทึก'; rBtn.disabled = false; }
+    modal.style.display = 'flex';
 }
 
-function captureReceiptSlip() {
+// แปลง HTML → <img> จริงๆ ให้ iOS long-press native ได้เลย
+function renderReceiptToImage() {
     const el = document.getElementById('receiptSlipCapture');
     if(!el) return;
-    if(typeof html2canvas === 'undefined') { alert('กดค้างที่ใบบินเพื่อบันทึกรูปครับ'); return; }
+    if(typeof html2canvas === 'undefined') { alert('ไม่พบ html2canvas'); return; }
+
+    const btn = document.getElementById('receiptRenderBtn');
+    if(btn) { btn.innerText = '⏳ กำลังแปลง...'; btn.disabled = true; }
+
     html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `slip-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        const dataUrl = canvas.toDataURL('image/png');
+        const img = document.getElementById('receiptSlipImg');
+        if(img) {
+            img.src = dataUrl;
+            // ซ่อน HTML ต้นฉบับ แสดง img จริงๆ แทน
+            document.getElementById('receiptSlipContent').style.display = 'none';
+            document.getElementById('receiptSlipImgWrap').style.display = 'flex';
+            if(btn) btn.style.display = 'none';
+        }
+    }).catch(() => {
+        if(btn) { btn.innerText = '📸 แปลงเป็นรูปเพื่อบันทึก'; btn.disabled = false; }
+        alert('แปลงรูปไม่สำเร็จ กรุณาลองใหม่');
     });
 }
+
+// compat: ปุ่มเก่าที่อาจเรียกอยู่
+function captureReceiptSlip() { renderReceiptToImage(); }
+
 
 function closeReceiptAndReset() {
     const modal = document.getElementById('receiptSlipModal');
@@ -995,7 +1043,7 @@ function executeCancelBill(billId) {
         } else {
             showStatusModal("❌ ล้มเหลว", data.message, false);
         }
-    }).catch(err => { showLoading(true); alert(err.toString()); });
+    }).catch(err => { showLoading(false); alert(err.toString()); });
 }
 
 function runWinnerCheck() {
@@ -1143,62 +1191,74 @@ function openWinnerSlip(billId) {
         let total = 0;
         data.items.forEach(it => total += it.price);
 
-        const maxPerCol = Math.max(col1.length, col2.length, col3.length, col4.length, col5.length);
-        let numSize, typeSize, amtSize, rowPad;
-        if(maxPerCol <= 4)      { numSize=10; typeSize=7; amtSize=9; rowPad=3; }
-        else if(maxPerCol <= 7) { numSize=9;  typeSize=6; amtSize=8; rowPad=2; }
-        else                    { numSize=8;  typeSize=6; amtSize=7; rowPad=1; }
+        const W = 540, H = 960;
+        const cols = [col1, col2, col3, col4, col5];
+        const numSize=13, typeSize=9, amtSize=11, rowPad=4;
 
         function renderCol(arr, startIdx) {
-            if(!arr.length) return '';
-            return arr.map(it => {
-                const isWin = winSet.has(it.num + '_' + it.position);
-                const bg       = isWin ? '#bbf7d0' : 'transparent';
-                const numColor = isWin ? '#15803d' : '#0f172a';
-                const amtColor = isWin ? '#15803d' : '#1d4ed8';
-                const winMark  = isWin ? '✅' : '';
-                const posLabel = (it.position && it.position !== 'รวม') ? ' '+it.position : '';
-                return `<div style="padding:${rowPad}px 0;border-bottom:1px solid #e2e8f0;background:${bg};border-radius:3px;">
-                    <div style="font-size:${numSize}px;font-weight:900;color:${numColor};line-height:1.1;">${winMark}${it.num}</div>
-                    <div style="font-size:${typeSize}px;color:#94a3b8;line-height:1.1;">${it.type||''}${posLabel}</div>
-                    <div style="font-size:${amtSize}px;font-weight:700;color:${amtColor};line-height:1.1;">${(it.price/1000).toFixed(0)}K</div>
-                </div>`;
-            }).join('');
+            const rows = [];
+            for(let i = 0; i < 10; i++) {
+                const it = arr[i];
+                if(it) {
+                    const isWin = winSet.has(it.num + '_' + it.position);
+                    const bg       = isWin ? '#bbf7d0' : 'transparent';
+                    const numColor = isWin ? '#15803d' : '#0f172a';
+                    const amtColor = isWin ? '#15803d' : '#1d4ed8';
+                    const winMark  = isWin ? '✅' : '';
+                    const posLabel = (it.position && it.position !== 'รวม') ? ' '+it.position : '';
+                    rows.push(`<div style="padding:${rowPad}px 0;border-bottom:1px solid #e2e8f0;background:${bg};border-radius:3px;flex:1;">
+                        <div style="font-size:${numSize}px;font-weight:900;color:${numColor};line-height:1.2;">${winMark}${it.num}</div>
+                        <div style="font-size:${typeSize}px;color:#94a3b8;line-height:1.1;">${it.type||''}${posLabel}</div>
+                        <div style="font-size:${amtSize}px;font-weight:700;color:${amtColor};line-height:1.2;">${(it.price/1000).toFixed(0)}K</div>
+                    </div>`);
+                } else {
+                    rows.push(`<div style="flex:1; border-bottom:1px solid #f1f5f9; padding:${rowPad}px 0;"></div>`);
+                }
+            }
+            return `<div style="display:flex; flex-direction:column; height:100%;">${rows.join('')}</div>`;
         }
 
-        const winTotal = winItems.reduce((s,w) => s + w.winAmount, 0);
-
         const slipHtml = `
-            <div id="winnerSlipCapture" style="background:#fff;color:#000;padding:10px;border-radius:12px;width:300px;font-family:'Noto Sans Thai',sans-serif;">
-                <div style="text-align:center;padding-bottom:5px;margin-bottom:5px;border-bottom:2px dashed #cbd5e1;">
-                    <div style="font-size:15px;font-weight:900;color:#000;letter-spacing:1px;">HUAYPRO 2</div>
-                    <div style="font-size:8px;color:#64748b;">ใบบินขายหวยดิจิทัล</div>
+            <div id="winnerSlipCapture" style="
+                background:#fff; color:#000;
+                width:${W}px; height:${H}px;
+                padding:20px 16px 16px;
+                border-radius:16px;
+                font-family:'Noto Sans Thai',sans-serif;
+                display:flex; flex-direction:column;
+                box-sizing:border-box; overflow:hidden;">
+
+                <!-- Header -->
+                <div style="text-align:center; padding-bottom:8px; margin-bottom:8px; border-bottom:2px dashed #cbd5e1; flex-shrink:0;">
+                    <div style="font-size:22px; font-weight:900; color:#000; letter-spacing:2px;">HUAYPRO 2</div>
+                    <div style="font-size:11px; color:#64748b;">ใบบินขายหวยดิจิทัล</div>
                 </div>
-                <div style="display:flex;justify-content:space-between;font-size:8px;color:#475569;margin-bottom:2px;">
+
+                <!-- Meta -->
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; margin-bottom:4px; flex-shrink:0;">
                     <span>วันที่: <strong>${dateStr}</strong></span>
                     <span>เวลา: <strong>${timeStr}</strong></span>
                 </div>
-                <div style="display:flex;justify-content:space-between;font-size:8px;color:#475569;padding-bottom:4px;margin-bottom:4px;border-bottom:1px dashed #cbd5e1;">
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; padding-bottom:6px; margin-bottom:8px; border-bottom:1px dashed #cbd5e1; flex-shrink:0;">
                     <span>พนักงาน: <strong>${data.username}</strong></span>
-                    <span style="color:#0a84ff;font-weight:700;font-size:7px;">${data.billId}</span>
+                    <span style="color:#0a84ff; font-weight:700; font-size:10px;">${data.billId}</span>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:2px;margin-bottom:6px;">
-                    <div>${renderCol(col1, 0)}</div>
-                    <div>${renderCol(col2, 10)}</div>
-                    <div>${renderCol(col3, 20)}</div>
-                    <div>${renderCol(col4, 30)}</div>
-                    <div>${renderCol(col5, 40)}</div>
+
+                <!-- 5 คอลัมน์ เต็มพื้นที่ที่เหลือ -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr; gap:4px; flex:1; overflow:hidden;">
+                    ${cols.map((c,i) => renderCol(c, i*10)).join('')}
                 </div>
-                <div style="border-top:2px solid #000;border-bottom:2px solid #000;padding:4px 0;text-align:center;margin-bottom:4px;">
-                    <span style="font-size:10px;font-weight:700;">ยอดรวมเงินทั้งหมด: </span>
-                    <strong style="font-size:14px;font-weight:900;">${total.toLocaleString()} ₭</strong>
+
+                <!-- Footer -->
+                <div style="border-top:2px solid #000; border-bottom:2px solid #000; padding:6px 0; text-align:center; margin-top:8px; flex-shrink:0;">
+                    <span style="font-size:13px; font-weight:700;">ยอดรวมเงินทั้งหมด: </span>
+                    <strong style="font-size:20px; font-weight:900;">${total.toLocaleString()} ₭</strong>
                 </div>
                 ${winTotal > 0 ? `
-                <div style="background:#dcfce7;border:2px solid #16a34a;border-radius:8px;padding:6px 8px;text-align:center;margin-bottom:4px;">
-                    <div style="font-size:9px;color:#15803d;font-weight:700;">🏆 ยอดรางวัลที่ถูก</div>
-                    <div style="font-size:14px;font-weight:900;color:#15803d;">${winTotal.toLocaleString()} ₭</div>
+                <div style="background:#dcfce7;border:2px solid #16a34a;border-radius:8px;padding:6px 8px;text-align:center;margin-top:6px;flex-shrink:0;">
+                    <div style="font-size:11px;color:#15803d;font-weight:700;">🏆 ยอดรางวัลที่ถูก</div>
+                    <div style="font-size:18px;font-weight:900;color:#15803d;">${winTotal.toLocaleString()} ₭</div>
                 </div>` : ''}
-                <div style="text-align:center;font-size:7px;color:#94a3b8;">*** กดค้างที่รูป 1 วินาที เพื่อคัดลอกรูปใบเสร็จ ***</div>
             </div>`;
 
         let modal = document.getElementById('winnerSlipModal');
@@ -1206,37 +1266,62 @@ function openWinnerSlip(billId) {
             modal = document.createElement('div');
             modal.id = 'winnerSlipModal';
             modal.className = 'modal-backdrop';
-            modal.style.cssText = 'display:none;z-index:1001;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:12px;';
+            modal.style.cssText = 'display:none;z-index:1001;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:12px;overflow-y:auto;';
             modal.innerHTML = `
-                <div id="winnerSlipContent"></div>
-                <button onclick="captureWinnerSlip()" style="background:#0a84ff;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:300px;">📸 บันทึกรูปใบบิน</button>
+                <div id="winnerSlipContent" style="transform-origin:top center;"></div>
+                <div id="winnerSlipImgWrap" style="display:none; flex-direction:column; align-items:center; gap:8px;">
+                    <p style="color:#fff; font-size:12px; text-align:center; margin:0; opacity:0.8;">👆 กดค้างที่รูปเพื่อบันทึก / Copy</p>
+                    <img id="winnerSlipImg" style="max-width:300px; width:100%; border-radius:12px; display:block; -webkit-user-select:auto; user-select:auto;" draggable="true">
+                </div>
+                <button id="winnerRenderBtn" onclick="renderWinnerToImage()" style="background:#0a84ff;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:300px;">📸 แปลงเป็นรูปเพื่อบันทึก</button>
                 <button onclick="document.getElementById('winnerSlipModal').style.display='none'" style="background:#ff453a;color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:300px;">❌ ปิดหน้าต่าง</button>`;
             document.body.appendChild(modal);
         }
         document.getElementById('winnerSlipContent').innerHTML = slipHtml;
-        modal.style.display = 'flex';
 
-        // กดค้าง 1 วินาที → บันทึกรูป
-        const captureEl = document.getElementById('winnerSlipCapture');
-        let holdTimer = null;
-        captureEl.addEventListener('touchstart', () => { holdTimer = setTimeout(() => captureWinnerSlip(), 1000); });
-        captureEl.addEventListener('touchend',   () => { if(holdTimer) clearTimeout(holdTimer); });
-        captureEl.addEventListener('touchmove',  () => { if(holdTimer) clearTimeout(holdTimer); });
+        // scale ลงให้พอดีหน้าจอมือถือ
+        const scaleEl = document.getElementById('winnerSlipContent');
+        const displayW = Math.min(window.innerWidth - 24, 300);
+        const scale = displayW / W;
+        scaleEl.style.transform = `scale(${scale})`;
+        scaleEl.style.width = W + 'px';
+        scaleEl.style.marginBottom = `-${H * (1 - scale)}px`;
+
+        // reset state
+        document.getElementById('winnerSlipImgWrap').style.display = 'none';
+        document.getElementById('winnerSlipContent').style.display = 'block';
+        const wBtn = document.getElementById('winnerRenderBtn');
+        if(wBtn) { wBtn.style.display = 'block'; wBtn.innerText = '📸 แปลงเป็นรูปเพื่อบันทึก'; wBtn.disabled = false; }
+        modal.style.display = 'flex';
 
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
 
-function captureWinnerSlip() {
+function renderWinnerToImage() {
     const el = document.getElementById('winnerSlipCapture');
     if(!el) return;
-    if(typeof html2canvas === 'undefined') { alert('กดค้างที่ใบบินเพื่อบันทึกรูปครับ'); return; }
+    if(typeof html2canvas === 'undefined') { alert('ไม่พบ html2canvas'); return; }
+
+    const btn = document.getElementById('winnerRenderBtn');
+    if(btn) { btn.innerText = '⏳ กำลังแปลง...'; btn.disabled = true; }
+
     html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `winner-slip-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        const dataUrl = canvas.toDataURL('image/png');
+        const img = document.getElementById('winnerSlipImg');
+        if(img) {
+            img.src = dataUrl;
+            document.getElementById('winnerSlipContent').style.display = 'none';
+            document.getElementById('winnerSlipImgWrap').style.display = 'flex';
+            if(btn) btn.style.display = 'none';
+        }
+    }).catch(() => {
+        if(btn) { btn.innerText = '📸 แปลงเป็นรูปเพื่อบันทึก'; btn.disabled = false; }
+        alert('แปลงรูปไม่สำเร็จ กรุณาลองใหม่');
     });
 }
+
+// compat
+function captureWinnerSlip() { renderWinnerToImage(); }
 
 function openTamraBook() {
     document.getElementById('tamraBookModal').style.display = 'flex';
@@ -1301,33 +1386,83 @@ function logout() {
 }
 
 let statusModalTimer = null; let statusModalCallback = null;
-function showStatusModal(title, message, isSuccess, callback) { 
-    if (statusModalTimer) clearTimeout(statusModalTimer); 
-    document.getElementById('statusTitle').innerText = title; 
-    document.getElementById('statusMessage').innerText = message; 
-    document.getElementById('statusIcon').innerText = isSuccess ? "💎" : "💥"; 
-    statusModalCallback = callback; 
-    document.getElementById('statusModal').style.display = 'flex';
+
+function showStatusModal(title, message, isSuccess, callback) {
+    if(statusModalTimer) clearTimeout(statusModalTimer);
+
+    document.getElementById('statusTitle').innerText = title;
+    document.getElementById('statusMessage').innerText = message;
+    statusModalCallback = callback;
+
+    // เลือก SVG ที่จะแสดง
+    const svgSuccess = document.getElementById('statusSvgSuccess');
+    const svgFail    = document.getElementById('statusSvgFail');
+    const svgWarn    = document.getElementById('statusSvgWarn');
+    [svgSuccess, svgFail, svgWarn].forEach(s => s.style.display = 'none');
+
+    // reset stroke ก่อน animate
+    function resetAndAnimate(svgEl) {
+        svgEl.style.display = 'block';
+        // force reflow เพื่อ reset transition
+        const strokes = svgEl.querySelectorAll('[stroke-dashoffset]');
+        strokes.forEach(el => {
+            const orig = el.getAttribute('stroke-dasharray');
+            el.style.transition = 'none';
+            el.style.strokeDashoffset = orig;
+        });
+        const dots = svgEl.querySelectorAll('circle[fill]:not([fill="none"])');
+        dots.forEach(el => { el.style.transition = 'none'; el.style.opacity = '0'; });
+
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            // restore transitions แล้ว animate ไปที่ 0
+            strokes.forEach(el => {
+                el.style.transition = el.getAttribute('style').match(/transition:[^;]+/)?.[0] || '';
+                el.style.strokeDashoffset = '0';
+            });
+            dots.forEach(el => {
+                el.style.transition = 'opacity 0.2s ease 0.6s';
+                el.style.opacity = '1';
+            });
+        }));
+    }
+
+    // กำหนด title color ตาม type
+    const titleEl = document.getElementById('statusTitle');
+
+    // detect type จาก isSuccess หรือ title
+    const isWarn = !isSuccess && (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('หมดเวลา') || title.includes('ใกล้'));
+
     if(isSuccess) {
-        // success ทุกกรณี → ปิดเองใน 1.2 วินาที แล้วเรียก callback (ถ้ามี)
-        statusModalTimer = setTimeout(function() { closeStatusModal(); }, 1200);
-    } else { 
-        statusModalTimer = setTimeout(function() { closeStatusModal(); }, 2500); 
-    } 
+        resetAndAnimate(svgSuccess);
+        titleEl.style.color = '#30d158';
+    } else if(isWarn) {
+        resetAndAnimate(svgWarn);
+        titleEl.style.color = '#ff9f0a';
+    } else {
+        resetAndAnimate(svgFail);
+        titleEl.style.color = '#ff453a';
+    }
+
+    document.getElementById('statusModal').style.display = 'flex';
+
+    const delay = isSuccess ? 1400 : 2600;
+    statusModalTimer = setTimeout(() => closeStatusModal(), delay);
 }
 
-function closeStatusModal() { 
-    if (statusModalTimer) clearTimeout(statusModalTimer); 
-    document.getElementById('statusModal').style.display = 'none'; 
-    if(statusModalCallback && typeof statusModalCallback === 'function') { 
-        statusModalCallback(); 
-        statusModalCallback = null; 
-    } 
+function closeStatusModal() {
+    if(statusModalTimer) clearTimeout(statusModalTimer);
+    document.getElementById('statusModal').style.display = 'none';
+    // reset title color
+    document.getElementById('statusTitle').style.color = '';
+    if(statusModalCallback && typeof statusModalCallback === 'function') {
+        statusModalCallback();
+        statusModalCallback = null;
+    }
 }
 
 function hideAllPages() { 
     ['menuPage','recorderWrapper','dashboardPage','adminSettingsPage',
-     'superAdminMenuPage','staffPage','salesReportPage','timeLimitPage','checkWinPage',
+     'superAdminMenuPage','staffPage','timeLimitPage','checkWinPage',
      'billHistoryPage','checkWinStaffPage','payoutPage','settingsPage',
      'payoutSettingPage','changePassPage','colorModePage',
      'staffSalesPage','totalSalesPage','winnerStatPage','staffBreakdownPage'
@@ -1422,7 +1557,8 @@ function goToSubSetting(pageId) {
     hideAllPages();
     showPage(pageId);
     if(pageId === 'payoutSettingPage') loadPayoutSettings();
-    if(pageId === 'colorModePage') initColorModeUI();
+    if(pageId === 'colorModePage')     initColorModeUI();
+    if(pageId === 'timeLimitPage')     loadTimeLimits();
 }
 
 // helper แสดง page แบบ flex
@@ -1453,10 +1589,18 @@ function showMenu() {
 function goToAdminPage(pageId) {
     hideAllPages();
     showPage(pageId);
-    if(pageId === 'salesReportPage') loadAdminSalesReport();
-    if(pageId === 'staffPage') loadStaffList();
-    if(pageId === 'timeLimitPage') loadTimeLimits();
-    if(pageId === 'settingsPage') { /* แค่แสดงเมนูย่อย */ }
+    if(pageId === 'staffPage')      loadStaffList();
+    if(pageId === 'timeLimitPage')  loadTimeLimits();
+    if(pageId === 'checkWinPage') {
+        const now = new Date();
+        const dateEl = document.getElementById('searchDate2');
+        if(dateEl && !dateEl.value) {
+            dateEl.value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+        }
+        document.getElementById('winnersResultList2').innerHTML = '';
+    }
+    if(pageId === 'staffSalesPage') { /* แสดงเมนูย่อย */ }
+    if(pageId === 'settingsPage')   { /* แสดงเมนูย่อย */ }
 }
 
 function backToAdminMenu() {
@@ -1561,8 +1705,6 @@ function savePayoutSettings() {
         showStatusModal(data.success ? "💎 สำเร็จ" : "❌ ล้มเหลว", data.message, data.success);
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
-
-function backToMenu() { showMenu(); }
 
 // ========== 🕐 SERVER CLOCK ENGINE ==========
 let _serverTimeOffset = 0;
@@ -1766,22 +1908,13 @@ function loadAdminSalesReport() {
         });
 
         const fmt = n => n.toLocaleString() + ' ₭';
-        document.getElementById('rptToday').innerText     = fmt(today);
-        document.getElementById('rptYesterday').innerText = fmt(yesterday);
-        document.getElementById('rptWeek').innerText      = fmt(week);
-        document.getElementById('rptMonth').innerText     = fmt(month);
-        document.getElementById('rptYear').innerText      = fmt(year);
-        document.getElementById('rptBills').innerText     = data.totalBills + ' บิล';
-
-        // ยอดแยกพนักงาน
-        const container = document.getElementById('staffSalesContainer');
-        container.innerHTML = Object.entries(staffMap)
-            .sort((a,b) => b[1]-a[1])
-            .map(([name, amt]) => `
-                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border-color);">
-                    <span style="font-weight:700;">👤 ${name}</span>
-                    <span style="color:var(--ios-green); font-weight:800;">${amt.toLocaleString()} ₭</span>
-                </div>`).join('');
+        const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+        setEl('rptToday',     fmt(today));
+        setEl('rptYesterday', fmt(yesterday));
+        setEl('rptWeek',      fmt(week));
+        setEl('rptMonth',     fmt(month));
+        setEl('rptYear',      fmt(year));
+        setEl('rptBills',     data.totalBills + ' บิล');
 
         // ดึงสถิติคนถูกหวยจาก WinHistory
         fetch(BACKEND_API_URL, {
@@ -2094,10 +2227,8 @@ function applyColorMode(mode) {
         root.style.setProperty('--border-color','#d1d9e0');
         root.style.setProperty('--text-main',  '#0f172a');
         root.style.setProperty('--text-muted', '#64748b');
+        root.style.setProperty('--chip-bg',    '#e2e8f0');  // ✅ chip สว่าง อ่านออก
         document.body.style.background = '#f0f4f8';
-        // input สว่าง
-        document.documentElement.style.setProperty('--input-bg', '#e8edf2');
-        document.documentElement.style.setProperty('--input-color', '#0f172a');
         _applyInputColors('#e8edf2', '#0f172a', '#c5cdd6');
     } else if(mode === 'dark') {
         root.style.setProperty('--bg-main',    '#0b0f19');
@@ -2105,8 +2236,8 @@ function applyColorMode(mode) {
         root.style.setProperty('--border-color','#1e293b');
         root.style.setProperty('--text-main',  '#ffffff');
         root.style.setProperty('--text-muted', '#8e8e93');
+        root.style.setProperty('--chip-bg',    '#1c2333');  // ✅ chip มืดเดิม
         document.body.style.background = '#0b0f19';
-        // input มืด
         _applyInputColors('#1c2333', '#ffffff', '#1e293b');
     } else {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
