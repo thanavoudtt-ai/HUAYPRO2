@@ -98,19 +98,11 @@ function doPost(e) {
             
             if (dbName === inputUser && dbPin === inputPin) {
               const displayName = staffData[i][0].toString().trim();
-
-              // ✅ ตรวจ single-session lock
-              const sessionCheck = checkAndLockSession(ss, displayName);
-              if (!sessionCheck.allowed) {
-                return createResponse({ success: false, message: sessionCheck.message });
-              }
-
               return createResponse({ 
                 success: true, 
                 role: "staff", 
                 username: displayName,
-                name: displayName,
-                sessionToken: sessionCheck.token
+                name: displayName
               });
             }
           }
@@ -664,7 +656,7 @@ function saveWinResult(date, winNum, position, billCount, totalPayout, username)
 
     // ตรวจสอบว่ามีเลขนี้วันนี้แล้วหรือยัง
     const existing = sheet.getDataRange().getValues();
-    for (let i = 1; i < existing.length; i++) {
+    for (let i = 0; i < existing.length; i++) {
       if (existing[i][0] && existing[i][0].toString().trim() === date.toString().trim() &&
           existing[i][1] && existing[i][1].toString().trim() === winNum.toString().trim() &&
           existing[i][2] && existing[i][2].toString().trim() === position.toString().trim()) {
@@ -676,16 +668,16 @@ function saveWinResult(date, winNum, position, billCount, totalPayout, username)
       }
     }
 
-    // เพิ่มแถวใหม่
+    // เพิ่มแถวใหม่ — บันทึกวันที่เป็น string d/M/yyyy เพื่อให้อ่านกลับได้สม่ำเสมอ
     const now = new Date();
     sheet.appendRow([
-      date.toString().trim(),
-      winNum.toString().trim(),
-      position.toString().trim(),
-      parseInt(billCount) || 0,
-      parseFloat(totalPayout) || 0,
-      username ? username.toString().trim() : "superadmin",
-      now
+      date.toString().trim(),       // A: วันที่ string d/M/yyyy
+      winNum.toString().trim(),     // B: เลขรางวัล
+      position.toString().trim(),   // C: ตำแหน่ง
+      parseInt(billCount) || 0,     // D: จำนวนบิลถูก
+      parseFloat(totalPayout) || 0, // E: ยอดจ่ายรวม
+      username ? username.toString().trim() : "superadmin", // F: บันทึกโดย
+      Utilities.formatDate(now, Session.getScriptTimeZone(), "d/M/yyyy HH:mm:ss") // G: เวลาบันทึก
     ]);
 
     return { success: true, message: `✅ บันทึกผลรางวัล ${winNum} [${position}] วันที่ ${date} เรียบร้อย!` };
@@ -704,22 +696,29 @@ function getWinHistory() {
     const data = sheet.getDataRange().getValues();
     const now = new Date();
     const toStr = d => `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-    const todayStr = toStr(now);
+    const todayStr     = toStr(now);
     const yest = new Date(now); yest.setDate(yest.getDate()-1);
     const yesterdayStr = toStr(yest);
 
     let today=0, yesterday=0, week=0, month=0, year=0;
     let records = [];
 
-    for (let i = 1; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
       if (!data[i][0]) continue;
-      const rowDateStr = data[i][0].toString().trim();
-      const count = parseInt(data[i][3]) || 0;
 
-      // แปลง d/M/yyyy เป็น Date
-      const parts = rowDateStr.split('/');
-      if (parts.length !== 3) continue;
-      const rowDate = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+      // รองรับทั้ง Date object และ string d/M/yyyy
+      let rowDate;
+      const rawVal = data[i][0];
+      if (rawVal instanceof Date) {
+        rowDate = rawVal;
+      } else {
+        const parts = rawVal.toString().trim().split('/');
+        if (parts.length !== 3) continue;
+        rowDate = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+      }
+
+      const rowDateStr = toStr(rowDate);
+      const count = parseInt(data[i][3]) || 0;
       const diffDays = Math.floor((now - rowDate) / 86400000);
 
       if (rowDateStr === todayStr)     today     += count;

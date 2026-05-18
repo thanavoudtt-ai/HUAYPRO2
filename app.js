@@ -16,10 +16,52 @@ let highlightPositionFilter = "ทั้งหมด";
 let popupLastFocusedInput = null; 
 
 document.addEventListener("DOMContentLoaded", function() {
-    // ไม่ต้องโหลด dropdown แล้ว พนักงานพิมพ์ชื่อเองได้เลย
     const loginUser = document.getElementById('loginUser');
     if(loginUser) loginUser.focus();
+    injectMenuIcons();
 });
+
+// ========== 🎨 SVG MENU ICONS ==========
+const MENU_ICONS = {
+    // Staff menu
+    '📝': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="5" y="4" width="22" height="26" rx="4" fill="#f5a623" opacity="0.15" stroke="#f5a623" stroke-width="1.5"/><line x1="9" y1="11" x2="23" y2="11" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="16" x2="23" y2="16" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="21" x2="17" y2="21" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#f5a623"/><line x1="24" y1="21.5" x2="24" y2="26.5" stroke="#1a0806" stroke-width="1.5" stroke-linecap="round"/><line x1="21.5" y1="24" x2="26.5" y2="24" stroke="#1a0806" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+
+    '📊': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="4" y="18" width="5" height="10" rx="2" fill="#25a04f"/><rect x="11" y="13" width="5" height="15" rx="2" fill="#25a04f" opacity="0.7"/><rect x="18" y="8" width="5" height="20" rx="2" fill="#25a04f"/><polyline points="6,17 13,12 20,7 27,10" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="27" cy="10" r="2" fill="#f5a623"/></svg>`,
+
+    '🔍': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="14" cy="14" r="8" stroke="#c4883a" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="4" fill="#c4883a" opacity="0.2"/><line x1="20" y1="20" x2="27" y2="27" stroke="#c4883a" stroke-width="2" stroke-linecap="round"/><line x1="11" y1="14" x2="17" y2="14" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="14" y1="11" x2="14" y2="17" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+
+    '🧾': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="6" y="5" width="20" height="24" rx="3" fill="#f5a623" opacity="0.1" stroke="#f5a623" stroke-width="1.5"/><line x1="10" y1="11" x2="22" y2="11" stroke="#f5a623" stroke-width="1.2" stroke-linecap="round"/><line x1="10" y1="15" x2="22" y2="15" stroke="#f5a623" stroke-width="1.2" stroke-linecap="round"/><line x1="10" y1="19" x2="17" y2="19" stroke="#f5a623" stroke-width="1.2" stroke-linecap="round"/><polyline points="17,22 21,26 28,18" stroke="#25a04f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
+
+    '🎨': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="10" stroke="#c4883a" stroke-width="1.5" fill="none"/><path d="M16 8 A8 8 0 0 1 24 16" stroke="#f5a623" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="16" cy="16" r="2.5" fill="#f5a623"/><line x1="16" y1="6" x2="16" y2="4" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="28" x2="16" y2="26" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="6" y1="16" x2="4" y2="16" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="28" y1="16" x2="26" y2="16" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><rect x="10" y="22" width="12" height="4" rx="2" fill="#f5a623" opacity="0.2" stroke="#f5a623" stroke-width="1"/></svg>`,
+
+    '📤': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="6" y="8" width="20" height="16" rx="3" fill="#25a04f" opacity="0.15" stroke="#25a04f" stroke-width="1.5"/><line x1="10" y1="13" x2="22" y2="13" stroke="#25a04f" stroke-width="1.2" stroke-linecap="round"/><line x1="10" y1="17" x2="18" y2="17" stroke="#25a04f" stroke-width="1.2" stroke-linecap="round"/><path d="M20 22 L20 28 M17 25 L20 28 L23 25" stroke="#25a04f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
+
+    // Admin menu
+    '👥': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="12" cy="11" r="4" stroke="#f5a623" stroke-width="1.5" fill="none"/><path d="M4 26c0-4.4 3.6-8 8-8" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="21" cy="11" r="4" stroke="#c4883a" stroke-width="1.5" fill="none"/><path d="M21 18c4.4 0 8 3.6 8 8" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`,
+
+    '📋': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="6" y="6" width="20" height="22" rx="3" fill="#c4883a" opacity="0.12" stroke="#c4883a" stroke-width="1.5"/><rect x="11" y="4" width="10" height="5" rx="2" fill="#c4883a" stroke="#c4883a" stroke-width="1"/><line x1="10" y1="14" x2="22" y2="14" stroke="#c4883a" stroke-width="1.3" stroke-linecap="round"/><line x1="10" y1="18" x2="22" y2="18" stroke="#c4883a" stroke-width="1.3" stroke-linecap="round"/><line x1="10" y1="22" x2="16" y2="22" stroke="#c4883a" stroke-width="1.3" stroke-linecap="round"/></svg>`,
+
+    '⚙️': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="4" stroke="#f5a623" stroke-width="1.5" fill="none"/><path d="M16 4v3M16 25v3M4 16h3M25 16h3M7.5 7.5l2.1 2.1M22.4 22.4l2.1 2.1M7.5 24.5l2.1-2.1M22.4 9.6l2.1-2.1" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="16" r="8" stroke="#f5a623" stroke-width="1" stroke-dasharray="2 3" fill="none" opacity="0.4"/></svg>`,
+
+    '💰': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" stroke="#f5a623" stroke-width="1.5" fill="none"/><circle cx="16" cy="16" r="7" fill="#f5a623" opacity="0.1"/><text x="16" y="21" text-anchor="middle" font-size="13" font-weight="700" fill="#f5a623" font-family="sans-serif">₭</text></svg>`,
+
+    '⏰': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="17" r="10" stroke="#c4883a" stroke-width="1.5" fill="none"/><line x1="16" y1="17" x2="16" y2="11" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="17" x2="21" y2="17" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="17" r="1.5" fill="#f5a623"/><line x1="12" y1="5" x2="10" y2="7" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="5" x2="22" y2="7" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+
+    '🔐': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="8" y="15" width="16" height="13" rx="3" fill="#e05030" opacity="0.15" stroke="#e05030" stroke-width="1.5"/><path d="M11 15v-4a5 5 0 0 1 10 0v4" stroke="#e05030" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="21" r="2" fill="#e05030"/><line x1="16" y1="23" x2="16" y2="25" stroke="#e05030" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+
+    '🏆': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><path d="M10 6h12v10a6 6 0 0 1-12 0V6z" fill="#f5a623" opacity="0.15" stroke="#f5a623" stroke-width="1.5"/><path d="M10 10H7a3 3 0 0 0 3 6" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round" fill="none"/><path d="M22 10h3a3 3 0 0 1-3 6" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round" fill="none"/><line x1="16" y1="22" x2="16" y2="26" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="26" x2="21" y2="26" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/></svg>`,
+};
+
+function injectMenuIcons() {
+    document.querySelectorAll('.menu-icon').forEach(el => {
+        const emoji = el.innerText.trim();
+        if(MENU_ICONS[emoji]) {
+            el.innerHTML = MENU_ICONS[emoji];
+            el.style.fontSize = '0'; // ซ่อน emoji เดิม
+        }
+    });
+}
+
 
 // ✨ ฟังก์ชันโหลดรายชื่อพนักงานเข้า Dropdown (เพิ่มเข้าระบบให้สมบูรณ์แล้ว)
 function loadUsernames() {
@@ -115,7 +157,7 @@ function handleLogin() {
     .then(data => {
         if(data.success) {
             currentUser = { role: data.role, username: data.username, name: data.name || data.username };
-            _sessionToken = data.sessionToken || null; // เก็บ token
+            _sessionToken = null; // ปิดระบบ single-session lock
             if(pinInput) pinInput.value = ""; 
             if(adminPassInput) adminPassInput.value = "";
             
@@ -125,32 +167,23 @@ function handleLogin() {
             startServerClock();
             loadTimeLimitsFromServer();
             startSessionTimeout();
-            startSessionHeartbeat(); // ✅ เริ่ม heartbeat
             showMenu();
         } else {
             clearPinBoxes();
 
-            // ตรวจว่าเป็น session lock หรือ PIN ผิด
-            const isSessionLocked = data.message && data.message.includes('กำลังใช้งานอยู่');
-
-            if(isSessionLocked) {
-                // แสดง popup พิเศษ — ไม่นับ login attempt
-                showSessionLockedModal(data.message);
+            _loginAttempts++;
+            if(_loginAttempts >= 5) {
+                _loginLocked = true;
+                showStatusModal("🔒 ระบบล็อก", `กรอกรหัสผิด 5 ครั้ง\nกรุณารอ 5 นาที`, false);
+                if(_loginLockTimer) clearTimeout(_loginLockTimer);
+                _loginLockTimer = setTimeout(() => {
+                    _loginLocked = false;
+                    _loginAttempts = 0;
+                    showStatusModal("🔓 ปลดล็อกแล้ว", "สามารถเข้าสู่ระบบได้อีกครั้ง", true);
+                }, 5 * 60 * 1000);
             } else {
-                _loginAttempts++;
-                if(_loginAttempts >= 5) {
-                    _loginLocked = true;
-                    showStatusModal("🔒 ระบบล็อก", `กรอกรหัสผิด 5 ครั้ง\nกรุณารอ 5 นาที`, false);
-                    if(_loginLockTimer) clearTimeout(_loginLockTimer);
-                    _loginLockTimer = setTimeout(() => {
-                        _loginLocked = false;
-                        _loginAttempts = 0;
-                        showStatusModal("🔓 ปลดล็อกแล้ว", "สามารถเข้าสู่ระบบได้อีกครั้ง", true);
-                    }, 5 * 60 * 1000);
-                } else {
-                    const remain = 5 - _loginAttempts;
-                    showStatusModal("❌ เข้าสู่ระบบไม่สำเร็จ", `ชื่อหรือรหัส PIN ไม่ถูกต้อง\nเหลืออีก ${remain} ครั้ง`, false);
-                }
+                const remain = 5 - _loginAttempts;
+                showStatusModal("❌ เข้าสู่ระบบไม่สำเร็จ", `ชื่อหรือรหัส PIN ไม่ถูกต้อง\nเหลืออีก ${remain} ครั้ง`, false);
             }
         }
     })
@@ -202,7 +235,7 @@ function syncPinValue() {
     // auto login เมื่อครบ 4 หลัก — ป้องกันเรียกซ้ำ
     if(pin.length === 4 && !_pinLoginPending) {
         _pinLoginPending = true;
-        setTimeout(() => { _pinLoginPending = false; handleLogin(); }, 150);
+        setTimeout(() => { _pinLoginPending = false; handleLogin(); }, 80);
     }
 }
 
@@ -1548,14 +1581,6 @@ function filterTamra() {
 }
 
 function logout() {
-    // แจ้ง backend ปลด session lock
-    if(_sessionToken && currentUser.username) {
-        fetch(BACKEND_API_URL, {
-            method: "POST", mode: "cors",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "unlockSession", username: currentUser.username, sessionToken: _sessionToken })
-        }).catch(() => {});
-    }
     _sessionToken = null;
     if(_heartbeatInterval) clearInterval(_heartbeatInterval);
     currentUser = {};
@@ -1768,7 +1793,8 @@ function showMenu() {
         showPage('superAdminMenuPage');
     } else { 
         showPage('menuPage');
-    } 
+    }
+    setTimeout(injectMenuIcons, 50);
 }
 
 function goToAdminPage(pageId) {
@@ -2484,6 +2510,19 @@ function _applyInputColors(bg, color, border) {
         document.head.appendChild(s);
         return s;
     })();
+
+    const isLight = bg === '#faf5ee';
+    const navBg      = isLight ? '#fff8f0' : '#220d07';
+    const cardBg     = isLight ? '#ffffff'  : '#2d1108';
+    const bottomBg   = isLight ? '#fff8f0'  : '#220d07';
+    const segBg      = isLight ? '#f0e8da'  : '#220d07';
+    const chipBg     = isLight ? '#f5e6cc'  : '#3a1508';
+    const borderCol  = isLight ? '#d4b896'  : '#5a2210';
+    const mutedColor = isLight ? '#8a5a30'  : '#c4883a';
+    const statValCol = isLight ? '#1a7a3a'  : '#25a04f';
+    const accentCol  = isLight ? '#c47d10'  : '#f5a623';
+    const btnPrimTxt = isLight ? '#ffffff'  : '#1a0806';
+
     style.textContent = `
         input, select, textarea {
             background: ${bg} !important;
@@ -2492,6 +2531,48 @@ function _applyInputColors(bg, color, border) {
         }
         input::placeholder { color: ${color}88 !important; }
         select option { background: ${bg}; color: ${color}; }
+
+        /* navbar & bottom bar */
+        .navbar-top { background: ${navBg} !important; border-color: ${borderCol} !important; }
+        .bottom-bar { background: ${bottomBg} !important; border-color: ${borderCol} !important; }
+
+        /* cards */
+        .card { background: ${cardBg} !important; border-color: ${borderCol} !important; }
+        .stat-card { background: ${isLight ? '#faf5ee' : '#3a1508'} !important; border-color: ${borderCol} !important; }
+        .menu-item { background: ${cardBg} !important; border-color: ${borderCol} !important; }
+
+        /* text */
+        .menu-title { color: ${color} !important; }
+        .stat-label { color: ${mutedColor} !important; }
+        .stat-value { color: ${statValCol} !important; }
+        .table-bill th { color: ${mutedColor} !important; }
+        .table-bill td { color: ${color} !important; border-color: ${isLight ? '#e8dece' : '#1c2333'} !important; }
+
+        /* segmented control */
+        .segmented-control { background: ${segBg} !important; border-color: ${borderCol} !important; }
+        .segment-btn { color: ${mutedColor} !important; }
+        .segment-btn.active { background: ${accentCol} !important; color: ${btnPrimTxt} !important; }
+
+        /* chips */
+        .btn-amt-chip { background: ${chipBg} !important; color: ${color} !important; border-color: ${borderCol} !important; }
+
+        /* btn secondary */
+        .btn-secondary, .bb-secondary {
+            background: ${isLight ? '#f0e8da' : '#3a1508'} !important;
+            color: ${color} !important;
+            border-color: ${borderCol} !important;
+        }
+
+        /* primary btn text */
+        .bb-primary, .btn-primary { color: ${btnPrimTxt} !important; }
+
+        /* muted text */
+        [style*="color: var(--text-muted)"],
+        [style*="color:var(--text-muted)"] { color: ${mutedColor} !important; }
+
+        /* page bg */
+        .app-container { background: transparent !important; }
+        .page-wrapper { background: ${isLight ? '#f0ebe0' : '#1a0806'} !important; }
     `;
 }
 

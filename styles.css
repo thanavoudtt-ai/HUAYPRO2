@@ -35,7 +35,11 @@ body { color: var(--text-main); -webkit-user-select: none; user-select: none; ov
     background: var(--bg-main);
     position: relative;
     overflow: hidden;
+    /* auto safe area — ทุกเครื่องพอดีอัตโนมัติ */
     padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    box-sizing: border-box;
 }
 
 /* ส่วนที่ scroll ได้ต้องระบุเองในแต่ละ page */
