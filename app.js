@@ -129,19 +129,28 @@ function handleLogin() {
             showMenu();
         } else {
             clearPinBoxes();
-            _loginAttempts++;
-            if(_loginAttempts >= 5) {
-                _loginLocked = true;
-                showStatusModal("🔒 ระบบล็อก", `กรอกรหัสผิด 5 ครั้ง\nกรุณารอ 5 นาที`, false);
-                if(_loginLockTimer) clearTimeout(_loginLockTimer);
-                _loginLockTimer = setTimeout(() => {
-                    _loginLocked = false;
-                    _loginAttempts = 0;
-                    showStatusModal("🔓 ปลดล็อกแล้ว", "สามารถเข้าสู่ระบบได้อีกครั้ง", true);
-                }, 5 * 60 * 1000);
+
+            // ตรวจว่าเป็น session lock หรือ PIN ผิด
+            const isSessionLocked = data.message && data.message.includes('กำลังใช้งานอยู่');
+
+            if(isSessionLocked) {
+                // แสดง popup พิเศษ — ไม่นับ login attempt
+                showSessionLockedModal(data.message);
             } else {
-                const remain = 5 - _loginAttempts;
-                showStatusModal("❌ เข้าสู่ระบบไม่สำเร็จ", `ชื่อหรือรหัส PIN ไม่ถูกต้อง\nเหลืออีก ${remain} ครั้ง`, false);
+                _loginAttempts++;
+                if(_loginAttempts >= 5) {
+                    _loginLocked = true;
+                    showStatusModal("🔒 ระบบล็อก", `กรอกรหัสผิด 5 ครั้ง\nกรุณารอ 5 นาที`, false);
+                    if(_loginLockTimer) clearTimeout(_loginLockTimer);
+                    _loginLockTimer = setTimeout(() => {
+                        _loginLocked = false;
+                        _loginAttempts = 0;
+                        showStatusModal("🔓 ปลดล็อกแล้ว", "สามารถเข้าสู่ระบบได้อีกครั้ง", true);
+                    }, 5 * 60 * 1000);
+                } else {
+                    const remain = 5 - _loginAttempts;
+                    showStatusModal("❌ เข้าสู่ระบบไม่สำเร็จ", `ชื่อหรือรหัส PIN ไม่ถูกต้อง\nเหลืออีก ${remain} ครั้ง`, false);
+                }
             }
         }
     })
@@ -215,6 +224,28 @@ function toggleAdminPasswordVisibility() {
     input.type = isHidden ? 'text' : 'password';
     btn.textContent = isHidden ? '🙈' : '👁️';
     btn.style.opacity = isHidden ? '1' : '0.5';
+}
+
+function showSessionLockedModal(message) {
+    // ลบ modal เก่าถ้ามี
+    const old = document.getElementById('sessionLockedModal');
+    if(old) old.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'sessionLockedModal';
+    modal.className = 'modal-backdrop';
+    modal.style.zIndex = '2000';
+    modal.innerHTML = `
+        <div style="background:var(--bg-card); border:2px solid var(--ios-pink); border-radius:20px; padding:28px 24px; width:100%; max-width:320px; text-align:center;">
+            <div style="font-size:52px; margin-bottom:12px;">🔒</div>
+            <div style="font-size:17px; font-weight:900; color:var(--ios-pink); margin-bottom:10px;">กำลังใช้งานอยู่</div>
+            <div style="font-size:13px; color:var(--text-muted); line-height:1.7; margin-bottom:20px; white-space:pre-line;">${message.replace(/⚠️/g,'').trim()}</div>
+            <button onclick="document.getElementById('sessionLockedModal').remove()"
+                style="width:100%; background:var(--ios-pink); color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:700; cursor:pointer;">
+                ตกลง
+            </button>
+        </div>`;
+    document.body.appendChild(modal);
 }
 
 function toggleLoginMode() {
@@ -775,7 +806,7 @@ function showReceiptSlipDirect(billId, staffName, dateStr, items) {
 
             <!-- Header -->
             <div style="text-align:center; padding-bottom:8px; margin-bottom:8px; border-bottom:2px dashed #cbd5e1; flex-shrink:0;">
-                <div style="font-size:22px; font-weight:900; color:#000; letter-spacing:2px;">HUAYPRO 2</div>
+                <div style="font-size:22px; font-weight:900; color:#000; letter-spacing:2px;">HUAYPLUS</div>
                 <div style="font-size:11px; color:#64748b;">ใบบินขายหวยดิจิทัล</div>
             </div>
 
@@ -1290,7 +1321,7 @@ function openWinnerSlip(billId) {
 
                 <!-- Header -->
                 <div style="text-align:center; padding-bottom:8px; margin-bottom:8px; border-bottom:2px dashed #cbd5e1; flex-shrink:0;">
-                    <div style="font-size:22px; font-weight:900; color:#000; letter-spacing:2px;">HUAYPRO 2</div>
+                    <div style="font-size:22px; font-weight:900; color:#000; letter-spacing:2px;">HUAYPLUS</div>
                     <div style="font-size:11px; color:#64748b;">ใบบินขายหวยดิจิทัล</div>
                 </div>
 
