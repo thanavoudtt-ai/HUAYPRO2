@@ -343,13 +343,12 @@ function renderBillHistory(bills) {
     if(!bills.length) { list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">📭 ไม่มีประวัติบิล</div>`; return; }
     list.innerHTML = bills.map(b => {
         const isCanceled = b.status === 'ยกเลิก';
-        const color = isCanceled ? 'var(--ios-pink)' : 'var(--ios-green)';
+        const color = isCanceled ? 'var(--ios-pink)' : 'var(--ios-blue)';
         return `
-        <div style="padding:10px; border-bottom:1px solid var(--border-color); cursor:pointer;" 
-             onclick="viewSpecificBill('${b.billId}'); goToDashboard();">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="padding:12px; border-bottom:1px solid var(--border-color);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <div>
-                    <div style="font-size:11px; font-weight:800; color:var(--ios-blue);">${b.billId}</div>
+                    <div style="font-size:12px; font-weight:800; color:var(--ios-blue);">${b.billId}</div>
                     <div style="font-size:11px; color:var(--text-muted);">📅 ${b.date} | ${b.items.length} รายการ</div>
                 </div>
                 <div style="text-align:right;">
@@ -357,8 +356,52 @@ function renderBillHistory(bills) {
                     <div style="font-size:10px; color:${color};">${isCanceled ? '❌ ยกเลิก' : '✅ ปกติ'}</div>
                 </div>
             </div>
+            <div style="display:flex; gap:8px;">
+                <button onclick="openBillSlipFromHistory('${b.billId}')"
+                    style="flex:1; background:var(--ios-blue); color:#1a0806; border:none; border-radius:10px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                    🧾 ดูใบบิน
+                </button>
+                ${!isCanceled ? `<button onclick="confirmCancelBill('${b.billId}')"
+                    style="flex:1; background:rgba(224,80,48,0.15); color:var(--ios-pink); border:1px solid rgba(224,80,48,0.3); border-radius:10px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                    🔥 ยกเลิกบิล
+                </button>` : ''}
+            </div>
         </div>`;
     }).join('');
+}
+
+function openBillSlipFromHistory(billId) {
+    const bill = _allBillHistory.find(b => b.billId === billId);
+    if(!bill) return;
+    const staffName = bill.items[0]?.staffName || currentUser.username;
+    const dateStr   = bill.date;
+    showReceiptSlipDirect(billId, staffName, dateStr, bill.items);
+}
+
+function confirmCancelBill(billId) {
+    // ใช้ custom confirm แทน native confirm
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.style.zIndex = '2000';
+    modal.innerHTML = `
+        <div style="background:var(--bg-card); border:2px solid var(--ios-pink); border-radius:20px; padding:24px; width:100%; max-width:300px; text-align:center;">
+            <div style="font-size:40px; margin-bottom:10px;">⚠️</div>
+            <div style="font-size:15px; font-weight:800; color:var(--ios-pink); margin-bottom:8px;">ยืนยันยกเลิกบิล</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:20px; line-height:1.6;">
+                บิล <strong style="color:var(--text-main);">${billId}</strong><br>จะถูกยกเลิก ยอดขายจะถูกตัดออกทันที
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="this.closest('.modal-backdrop').remove()"
+                    style="flex:1; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:12px; padding:12px; font-size:13px; font-weight:700; cursor:pointer;">
+                    ยกเลิก
+                </button>
+                <button onclick="this.closest('.modal-backdrop').remove(); executeCancelBill('${billId}')"
+                    style="flex:1; background:var(--ios-pink); color:#fff; border:none; border-radius:12px; padding:12px; font-size:13px; font-weight:700; cursor:pointer;">
+                    ยืนยัน
+                </button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
 }
 
 function filterBillHistory() {
@@ -1114,8 +1157,6 @@ function triggerBillSearch() {
 }
 
 function executeCancelBill(billId) {
-    if(!confirm(`⚠️ คุณแน่ใจชัวร์ไหมที่จะทำการ 'ยกเลิกบิล' รหัส: ${billId}?\nเมื่อยกเลิกแล้ว ยอดขายจะถูกตัดออกทันที!`)) return;
-    
     showLoading(true);
     fetch(BACKEND_API_URL, {
         method: "POST",
@@ -1126,12 +1167,12 @@ function executeCancelBill(billId) {
     .then(res => res.json()).then(data => {
         showLoading(false);
         if(data.success) {
-            showStatusModal("💎 สำเร็จ", data.message, true, function() {
-                triggerBillSearch();
+            showStatusModal("สำเร็จ", data.message, true, function() {
+                loadBillHistory(); // reload list ใน billHistoryPage
                 loadDashboardData();
             });
         } else {
-            showStatusModal("❌ ล้มเหลว", data.message, false);
+            showStatusModal("ไม่สำเร็จ", data.message, false);
         }
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
@@ -1608,7 +1649,7 @@ function hideAllPages() {
     ['menuPage','recorderWrapper','dashboardPage','adminSettingsPage',
      'superAdminMenuPage','staffPage','timeLimitPage','checkWinPage',
      'billHistoryPage','checkWinStaffPage','payoutPage','settingsPage',
-     'payoutSettingPage','changePassPage','colorModePage',
+     'payoutSettingPage','changePassPage','colorModePage','exportPage',
      'staffSalesPage','totalSalesPage','winnerStatPage','staffBreakdownPage'
     ].forEach(id => {
         const el = document.getElementById(id);
@@ -2361,13 +2402,13 @@ function renderSalesChart(rawData) {
         const isToday = i === 6;
 
         // แท่ง
-        ctx.fillStyle = isToday ? '#0a84ff' : '#1c3a5e';
+        ctx.fillStyle = isToday ? '#f5a623' : '#7a3d10';
         ctx.beginPath();
         ctx.roundRect(x, y, barW, barH, 4);
         ctx.fill();
 
         // label วัน
-        ctx.fillStyle = '#8e8e93';
+        ctx.fillStyle = '#c4883a';
         ctx.font = '10px Noto Sans Thai, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(label, x + barW/2, H - 8);
@@ -2375,7 +2416,7 @@ function renderSalesChart(rawData) {
         // ยอด
         if(sales[i] > 0) {
             const kval = sales[i] >= 1000 ? Math.round(sales[i]/1000) + 'K' : sales[i];
-            ctx.fillStyle = isToday ? '#0a84ff' : '#8e8e93';
+            ctx.fillStyle = isToday ? '#f5a623' : '#c4883a';
             ctx.font = '9px Noto Sans Thai, sans-serif';
             ctx.fillText(kval, x + barW/2, y - 4);
         }
@@ -2407,18 +2448,24 @@ function setAppColorMode(mode) {
 function applyColorMode(mode) {
     const root = document.documentElement;
     if(mode === 'light') {
-        root.style.setProperty('--bg-main',    '#f0f4f8');
-        root.style.setProperty('--bg-card',    '#ffffff');
-        root.style.setProperty('--border-color','#d1d9e0');
-        root.style.setProperty('--text-main',  '#0f172a');
-        root.style.setProperty('--text-muted', '#64748b');
-        root.style.setProperty('--chip-bg',    '#e2e8f0');  // ✅ chip สว่าง อ่านออก
-        document.body.style.background = '#f0f4f8';
-        _applyInputColors('#e8edf2', '#0f172a', '#c5cdd6');
+        root.style.setProperty('--bg-main',     '#f0ebe0');
+        root.style.setProperty('--bg-card',     '#ffffff');
+        root.style.setProperty('--border-color','#d4b896');
+        root.style.setProperty('--ios-blue',    '#c47d10');
+        root.style.setProperty('--ios-green',   '#1a7a3a');
+        root.style.setProperty('--ios-pink',    '#c0392b');
+        root.style.setProperty('--text-main',   '#2d1108');
+        root.style.setProperty('--text-muted',  '#8a5a30');
+        root.style.setProperty('--chip-bg',     '#f5e6cc');
+        document.body.style.background = '#f0ebe0';
+        _applyInputColors('#faf5ee', '#2d1108', '#d4b896');
     } else if(mode === 'dark') {
         root.style.setProperty('--bg-main',    '#1a0806');
         root.style.setProperty('--bg-card',    '#2d1108');
         root.style.setProperty('--border-color','#5a2210');
+        root.style.setProperty('--ios-blue',   '#f5a623');
+        root.style.setProperty('--ios-green',  '#25a04f');
+        root.style.setProperty('--ios-pink',   '#e05030');
         root.style.setProperty('--text-main',  '#f5e6c8');
         root.style.setProperty('--text-muted', '#c4883a');
         root.style.setProperty('--chip-bg',    '#3a1508');
@@ -2489,4 +2536,224 @@ function changeAdminPassword() {
             document.getElementById('confirmAdminPass').value = '';
         }
     }).catch(err => { showLoading(false); showStatusModal('❌ ล้มเหลว', err.toString(), false); });
+}
+// ========== 📤 EXPORT REPORT ==========
+let _exportFormat = 'excel';
+let _exportType   = 'allBills';
+
+const EXPORT_TYPES = {
+    superadmin: [
+        { id:'allBills',      label:'🧾 รายการบิลทั้งหมด',        desc:'ทุกบิลในระบบ' },
+        { id:'salesDaily',    label:'📅 ยอดขายรายวัน',            desc:'สรุปยอดแต่ละวัน' },
+        { id:'salesByStaff',  label:'👤 ยอดขายแยกรายพนักงาน',    desc:'เปรียบเทียบพนักงาน' },
+        { id:'winners',       label:'🏆 รายงานคนถูกหวย',          desc:'ประวัติรางวัลที่จ่าย' },
+    ],
+    staff: [
+        { id:'myBills',       label:'🧾 รายการบิลของฉัน',          desc:'บิลที่ฉันขาย' },
+        { id:'mySalesDaily',  label:'📅 ยอดขายของฉันรายวัน',      desc:'สรุปยอดแต่ละวัน' },
+    ]
+};
+
+function goToExportPage() {
+    hideAllPages();
+    showPage('exportPage');
+
+    // set default วันที่ — เดือนนี้
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth()+1).padStart(2,'0');
+    const d = String(now.getDate()).padStart(2,'0');
+    const firstDay = `${y}-${m}-01`;
+    const today    = `${y}-${m}-${d}`;
+    const fromEl = document.getElementById('exportDateFrom');
+    const toEl   = document.getElementById('exportDateTo');
+    if(fromEl) fromEl.value = firstDay;
+    if(toEl)   toEl.value   = today;
+
+    // render type list ตาม role
+    const role   = currentUser.role === 'superadmin' ? 'superadmin' : 'staff';
+    const types  = EXPORT_TYPES[role];
+    const list   = document.getElementById('exportTypeList');
+    _exportType  = types[0].id;
+    list.innerHTML = types.map((t,i) => `
+        <div id="expType_${t.id}" onclick="selectExportType('${t.id}')"
+            style="border:2px solid ${i===0?'var(--ios-blue)':'var(--border-color)'}; border-radius:12px; padding:12px 14px;
+                   background:${i===0?'rgba(245,166,35,0.08)':'transparent'};
+                   display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s;">
+            <div style="flex:1;">
+                <div style="font-size:13px; font-weight:800; ${i===0?'color:var(--ios-blue)':''}">${t.label}</div>
+                <div style="font-size:11px; color:var(--text-muted);">${t.desc}</div>
+            </div>
+            <div id="expCheck_${t.id}" style="font-size:18px;">${i===0?'✅':''}</div>
+        </div>`).join('');
+
+    // default format
+    _exportFormat = 'excel';
+    selectExportFormat('excel');
+}
+
+function selectExportType(id) {
+    const role  = currentUser.role === 'superadmin' ? 'superadmin' : 'staff';
+    EXPORT_TYPES[role].forEach(t => {
+        const el    = document.getElementById('expType_' + t.id);
+        const check = document.getElementById('expCheck_' + t.id);
+        if(!el) return;
+        const active = t.id === id;
+        el.style.border     = active ? '2px solid var(--ios-blue)' : '2px solid var(--border-color)';
+        el.style.background = active ? 'rgba(245,166,35,0.08)' : 'transparent';
+        el.querySelector('div > div:first-child').style.color = active ? 'var(--ios-blue)' : '';
+        if(check) check.innerText = active ? '✅' : '';
+    });
+    _exportType = id;
+}
+
+function selectExportFormat(fmt) {
+    _exportFormat = fmt;
+    const excel = document.getElementById('fmtExcel');
+    const pdf   = document.getElementById('fmtPdf');
+    if(excel) {
+        excel.style.border     = fmt==='excel' ? '2px solid var(--ios-blue)' : '2px solid var(--border-color)';
+        excel.style.background = fmt==='excel' ? 'rgba(245,166,35,0.1)' : 'transparent';
+    }
+    if(pdf) {
+        pdf.style.border     = fmt==='pdf' ? '2px solid var(--ios-blue)' : '2px solid var(--border-color)';
+        pdf.style.background = fmt==='pdf' ? 'rgba(245,166,35,0.1)' : 'transparent';
+    }
+}
+
+function backFromExport() {
+    if(currentUser.role === 'superadmin') goToAdminPage('settingsPage');
+    else showMenu();
+}
+
+function doExport() {
+    const dateFrom = document.getElementById('exportDateFrom').value;
+    const dateTo   = document.getElementById('exportDateTo').value;
+    if(!dateFrom || !dateTo) { showStatusModal('ไม่สำเร็จ','กรุณาเลือกช่วงวันที่',false); return; }
+
+    showLoading(true);
+    // ดึงข้อมูลจาก backend แล้ว generate
+    fetch(BACKEND_API_URL, {
+        method:'POST', mode:'cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({
+            action:      'exportData',
+            exportType:  _exportType,
+            dateFrom:    dateFrom,
+            dateTo:      dateTo,
+            username:    currentUser.username,
+            role:        currentUser.role
+        })
+    })
+    .then(r => r.json()).then(data => {
+        showLoading(false);
+        if(!data.success) { showStatusModal('ไม่สำเร็จ', data.message || 'เกิดข้อผิดพลาด', false); return; }
+        if(_exportFormat === 'excel') generateExcel(data, _exportType, dateFrom, dateTo);
+        else                          generatePDF(data, _exportType, dateFrom, dateTo);
+    }).catch(err => { showLoading(false); showStatusModal('ไม่สำเร็จ', err.toString(), false); });
+}
+
+// ========== EXCEL ==========
+function generateExcel(data, type, dateFrom, dateTo) {
+    if(typeof XLSX === 'undefined') { alert('ไม่พบ SheetJS'); return; }
+    const wb = XLSX.utils.book_new();
+
+    if(type === 'allBills' || type === 'myBills') {
+        const rows = [['Bill ID','วันที่','เวลา','พนักงาน','ลูกค้า','เลข','ตำแหน่ง','ราคา','ประเภท','สถานะ']];
+        (data.rows || []).forEach(r => rows.push([r.billId,r.date,r.time,r.staff,r.customer,r.num,r.position,r.price,r.type,r.status]));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'รายการบิล');
+    } else if(type === 'salesDaily' || type === 'mySalesDaily') {
+        const rows = [['วันที่','ยอดขาย (₭)','จำนวนบิล']];
+        (data.rows || []).forEach(r => rows.push([r.date, r.total, r.bills]));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'ยอดรายวัน');
+    } else if(type === 'salesByStaff') {
+        const rows = [['พนักงาน','ยอดขาย (₭)','จำนวนบิล']];
+        (data.rows || []).forEach(r => rows.push([r.staff, r.total, r.bills]));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'ยอดรายพนักงาน');
+    } else if(type === 'winners') {
+        const rows = [['วันที่','ลูกค้า','พนักงาน','เลข','ตำแหน่ง','ยอดรางวัล (₭)']];
+        (data.rows || []).forEach(r => rows.push([r.date,r.customer,r.staff,r.num,r.position,r.winAmount]));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'คนถูกหวย');
+    }
+
+    const fname = `HUAYPLUS_${type}_${dateFrom}_${dateTo}.xlsx`;
+    XLSX.writeFile(wb, fname);
+    showStatusModal('สำเร็จ', `บันทึก ${fname}`, true);
+}
+
+// ========== PDF — Blob URL (iOS Safari compatible) ==========
+function generatePDF(data, type, dateFrom, dateTo) {
+    const titleMap = {
+        allBills:'รายการบิลทั้งหมด', myBills:'รายการบิลของฉัน',
+        salesDaily:'ยอดขายรายวัน', mySalesDaily:'ยอดขายรายวันของฉัน',
+        salesByStaff:'ยอดขายแยกรายพนักงาน', winners:'รายงานคนถูกหวย'
+    };
+
+    let headers = [], rowMapper;
+    if(type==='allBills'||type==='myBills') {
+        headers = ['Bill ID','วันที่','เวลา','พนักงาน','ลูกค้า','เลข','ตำแหน่ง','ราคา (₭)','ประเภท','สถานะ'];
+        rowMapper = r => [r.billId,r.date,r.time,r.staff,r.customer,r.num,r.position,(r.price||0).toLocaleString(),r.type,r.status];
+    } else if(type==='salesDaily'||type==='mySalesDaily') {
+        headers = ['วันที่','ยอดขาย (₭)','จำนวนบิล'];
+        rowMapper = r => [r.date,(r.total||0).toLocaleString(),r.bills];
+    } else if(type==='salesByStaff') {
+        headers = ['พนักงาน','ยอดขาย (₭)','จำนวนบิล'];
+        rowMapper = r => [r.staff,(r.total||0).toLocaleString(),r.bills];
+    } else if(type==='winners') {
+        headers = ['วันที่','ลูกค้า','พนักงาน','เลข','ตำแหน่ง','ยอดรางวัล (₭)'];
+        rowMapper = r => [r.date,r.customer,r.staff,r.num,r.position,(r.winAmount||0).toLocaleString()];
+    }
+
+    const rows = data.rows || [];
+    const tableRows = rows.map(r => `<tr>${rowMapper(r).map(c=>`<td>${c||''}</td>`).join('')}</tr>`).join('');
+    const fname = `HUAYPLUS_${type}_${dateFrom}_${dateTo}.pdf`;
+
+    const html = `<!DOCTYPE html><html><head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>${fname}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            *{font-family:'Noto Sans Thai',sans-serif;font-size:11px;margin:0;padding:0;box-sizing:border-box;}
+            body{padding:20px;color:#000;background:#fff;}
+            h1{font-size:16px;font-weight:700;margin-bottom:4px;}
+            .meta{font-size:10px;color:#666;margin-bottom:14px;line-height:1.6;}
+            table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+            th{background:#2d1108;color:#f5a623;padding:6px 8px;text-align:left;font-weight:700;font-size:10px;}
+            td{padding:5px 8px;border-bottom:1px solid #eee;font-size:10px;}
+            tr:nth-child(even) td{background:#faf5ee;}
+            .footer{font-weight:700;font-size:12px;padding-top:8px;border-top:2px solid #2d1108;}
+            .btn{display:block;margin:16px auto;padding:12px 32px;background:#f5a623;color:#1a0806;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;}
+            @media print{.btn{display:none;}}
+        </style>
+    </head><body>
+        <h1>HUAYPLUS — ${titleMap[type]||type}</h1>
+        <div class="meta">
+            ช่วงวันที่: ${dateFrom} ถึง ${dateTo}<br>
+            Export: ${new Date().toLocaleString('th-TH')}
+        </div>
+        <table>
+            <thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+            <tbody>${tableRows}</tbody>
+        </table>
+        <div class="footer">รวมทั้งหมด: ${rows.length} รายการ</div>
+        <button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+    </body></html>`;
+
+    // สร้าง Blob แล้ว navigate — iOS Safari รองรับ
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+
+    // iOS: ต้องใช้ <a> click แทน window.open
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // revoke หลัง 60 วิ
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    showStatusModal('สำเร็จ', 'กด "Print / Save as PDF" ในหน้าที่เปิด', true);
 }

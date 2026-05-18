@@ -220,6 +220,11 @@ function doPost(e) {
       return createResponse(unlockSession(data.username, data.sessionToken));
     }
 
+    // 20. Export Data
+    if (action === "exportData") {
+      return createResponse(exportData(data));
+    }
+
     return createResponse({ success: false, message: "ไม่พบ Action ที่ระบุ" });
 
   } catch (error) {
@@ -893,5 +898,123 @@ function unlockSession(username, sessionToken) {
     return { success: true };
   } catch(e) {
     return { success: false };
+  }
+}
+
+// ========== 🛠️ DEV UTILITY ==========
+// รันใน Apps Script Editor ตอน dev เพื่อ clear session ทั้งหมด
+// ไม่ได้ถูกเรียกจากแอปอัตโนมัติ
+function clearAllSessions() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_SESSIONS);
+  if(!sheet) { Logger.log("ไม่พบ Sheet Sessions"); return; }
+  
+  const data = sheet.getDataRange().getValues();
+  let count = 0;
+  for(let i = 1; i < data.length; i++) {
+    if(data[i][3] === 'active') {
+      sheet.getRange(i + 1, 4).setValue('inactive');
+      count++;
+    }
+  }
+  Logger.log(`✅ Clear สำเร็จ — ปลด session ${count} รายการ`);
+}
+
+// ========== 📤 EXPORT DATA ==========
+function exportData(data) {
+  try {
+    const ss        = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet     = ss.getSheetByName(SHEET_DATA);
+    const winSheet  = ss.getSheetByName(SHEET_WIN_HISTORY);
+    const rows      = sheet.getDataRange().getDisplayValues();
+    const type      = data.exportType || 'allBills';
+    const username  = data.username || '';
+    const role      = data.role || 'staff';
+
+    // แปลง date string เป็น comparable format
+    function parseDate(dStr) {
+      // format: d/M/yyyy หรือ yyyy-MM-dd
+      if(!dStr) return null;
+      if(dStr.includes('-')) {
+        const [y,m,d] = dStr.split('-');
+        return new Date(y, m-1, d);
+      }
+      const [d,m,y] = dStr.split('/');
+      return new Date(y, m-1, d);
+    }
+
+    const from = parseDate(data.dateFrom);
+    const to   = parseDate(data.dateTo);
+    to.setHours(23,59,59);
+
+    // กรองแถวตาม date range
+    function inRange(rowDate) {
+      const d = parseDate(rowDate);
+      if(!d) return false;
+      return d >= from && d <= to;
+    }
+
+    // ข้ามแถว header (i=0)
+    const filtered = rows.slice(1).filter(r => r[0] && inRange(r[1]));
+
+    if(type === 'allBills') {
+      const result = filtered.map(r => ({
+        billId:r[0], date:r[1], time:r[2], staff:r[3], customer:r[4],
+        num:r[5], position:r[6], price:parseFloat(r[7])||0, type:r[8], status:r[9]
+      }));
+      return { success:true, rows:result };
+    }
+
+    if(type === 'myBills') {
+      const result = filtered.filter(r => r[3].toLowerCase()===username.toLowerCase()).map(r => ({
+        billId:r[0], date:r[1], time:r[2], staff:r[3], customer:r[4],
+        num:r[5], position:r[6], price:parseFloat(r[7])||0, type:r[8], status:r[9]
+      }));
+      return { success:true, rows:result };
+    }
+
+    if(type === 'salesDaily' || type === 'mySalesDaily') {
+      const src = type==='mySalesDaily'
+        ? filtered.filter(r => r[3].toLowerCase()===username.toLowerCase() && r[9]!=='ยกเลิก')
+        : filtered.filter(r => r[9]!=='ยกเลิก');
+      const map = {};
+      src.forEach(r => {
+        const d = r[1];
+        if(!map[d]) map[d] = { date:d, total:0, bills:new Set() };
+        map[d].total += parseFloat(r[7])||0;
+        map[d].bills.add(r[0]);
+      });
+      const result = Object.values(map).sort((a,b)=>a.date.localeCompare(b.date))
+        .map(x => ({ date:x.date, total:x.total, bills:x.bills.size }));
+      return { success:true, rows:result };
+    }
+
+    if(type === 'salesByStaff') {
+      const src = filtered.filter(r => r[9]!=='ยกเลิก');
+      const map = {};
+      src.forEach(r => {
+        const s = r[3];
+        if(!map[s]) map[s] = { staff:s, total:0, bills:new Set() };
+        map[s].total += parseFloat(r[7])||0;
+        map[s].bills.add(r[0]);
+      });
+      const result = Object.values(map).sort((a,b)=>b.total-a.total)
+        .map(x => ({ staff:x.staff, total:x.total, bills:x.bills.size }));
+      return { success:true, rows:result };
+    }
+
+    if(type === 'winners') {
+      if(!winSheet) return { success:true, rows:[] };
+      const wRows = winSheet.getDataRange().getDisplayValues().slice(1);
+      const result = wRows.filter(r => r[0] && inRange(r[0])).map(r => ({
+        date:r[0], customer:r[1], staff:r[2], num:r[3],
+        position:r[4], winAmount:parseFloat(r[5])||0
+      }));
+      return { success:true, rows:result };
+    }
+
+    return { success:false, message:'ไม่พบประเภทรายงานที่ระบุ' };
+  } catch(e) {
+    return { success:false, message:e.toString() };
   }
 }

@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="page-wrapper">
@@ -34,12 +36,14 @@
             </div>
 
             <!-- Content -->
-            <div class="app-container" style="justify-content:center; align-items:center; padding-top:60px;">
+            <div class="app-container" style="justify-content:center; align-items:center; padding-top:0;">
 
                 <!-- Avatar -->
                 <div style="text-align:center; margin-bottom:32px;">
                     <div id="loginAvatar" style="width:88px; height:88px; border-radius:50%; background:var(--bg-card); border:3px solid var(--ios-blue); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; transition:border-color 0.3s;">
-                        <div style="font-size:44px; line-height:1;">👤</div>
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#f5a623" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                        </svg>
                     </div>
                     <h1 style="font-size:26px; font-weight:900; letter-spacing:3px; margin-bottom:4px; color:var(--ios-blue);">HUAYPLUS</h1>
                     <p id="loginSubtitle" style="color:var(--text-muted); font-size:12px;">เข้าสู่ระบบพนักงาน</p>
@@ -299,6 +303,10 @@
                             <div class="menu-icon">🎨</div>
                             <div class="menu-title">โหมดสี</div>
                         </div>
+                        <div class="menu-item" onclick="goToExportPage()">
+                            <div class="menu-icon">📤</div>
+                            <div class="menu-title">Export รายงาน</div>
+                        </div>
                     </div>
                 </div>
                 <div class="bottom-bar">
@@ -373,6 +381,59 @@
                 </div>
                 <div class="bottom-bar">
                     <button class="bb-btn bb-secondary" onclick="backFromColorMode()">⬅️ กลับ</button>
+                </div>
+            </div>
+
+            <!-- 📤 หน้า Export รายงาน -->
+            <div id="exportPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1;">
+
+                    <!-- กรองวันที่ -->
+                    <div class="card" style="margin-bottom:12px;">
+                        <h3 style="font-size:13px; font-weight:800; color:var(--ios-blue); margin-bottom:10px;">📅 ช่วงวันที่</h3>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div class="input-group" style="margin:0; min-width:0;">
+                                <label>วันเริ่มต้น</label>
+                                <input type="date" id="exportDateFrom" style="font-size:13px; padding:10px; min-width:0; width:100%;">
+                            </div>
+                            <div class="input-group" style="margin:0; min-width:0;">
+                                <label>วันสิ้นสุด</label>
+                                <input type="date" id="exportDateTo" style="font-size:13px; padding:10px; min-width:0; width:100%;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- เลือกประเภทรายงาน -->
+                    <div class="card" style="margin-bottom:12px;">
+                        <h3 style="font-size:13px; font-weight:800; color:var(--ios-blue); margin-bottom:10px;">📋 ประเภทรายงาน</h3>
+                        <div style="display:flex; flex-direction:column; gap:8px;" id="exportTypeList">
+                            <!-- generate จาก JS ตาม role -->
+                        </div>
+                    </div>
+
+                    <!-- เลือก format -->
+                    <div class="card" style="margin-bottom:12px;">
+                        <h3 style="font-size:13px; font-weight:800; color:var(--ios-blue); margin-bottom:10px;">💾 รูปแบบไฟล์</h3>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div id="fmtExcel" onclick="selectExportFormat('excel')"
+                                style="border:2px solid var(--ios-blue); border-radius:12px; padding:14px; text-align:center; cursor:pointer; background:rgba(245,166,35,0.1);">
+                                <div style="font-size:28px; margin-bottom:4px;">📊</div>
+                                <div style="font-size:13px; font-weight:800; color:var(--ios-blue);">Excel</div>
+                                <div style="font-size:10px; color:var(--text-muted);">.xlsx</div>
+                            </div>
+                            <div id="fmtPdf" onclick="selectExportFormat('pdf')"
+                                style="border:2px solid var(--border-color); border-radius:12px; padding:14px; text-align:center; cursor:pointer;">
+                                <div style="font-size:28px; margin-bottom:4px;">📄</div>
+                                <div style="font-size:13px; font-weight:800;">PDF</div>
+                                <div style="font-size:10px; color:var(--text-muted);">.pdf</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="bottom-bar">
+                    <button class="bb-btn bb-secondary" onclick="backFromExport()">⬅️ กลับ</button>
+                    <button class="bb-btn bb-primary" onclick="doExport()" style="flex:2;">📤 Export</button>
                 </div>
             </div>
 
@@ -486,6 +547,10 @@
                         <div class="menu-item" onclick="goToColorMode()">
                             <div class="menu-icon">🎨</div>
                             <div class="menu-title">โหมดสี</div>
+                        </div>
+                        <div class="menu-item" onclick="goToExportPage()">
+                            <div class="menu-icon">📤</div>
+                            <div class="menu-title">Export รายงาน</div>
                         </div>
                     </div>
                 </div>
@@ -614,11 +679,11 @@
                     <div style="padding-top:8px; border-top:1px dashed var(--border-color); margin-top:8px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                             <span style="font-weight:700; color:var(--text-muted); font-size:13px;">รวมยอดก้อนบิลนี้:</span>
-                            <strong style="color:var(--ios-green); font-size:18px;" id="currentBillTotalLabel">0 ₭</strong>
+                            <strong style="color:var(--ios-blue); font-size:18px;" id="currentBillTotalLabel">0 ₭</strong>
                         </div>
                         <div style="display:flex; gap:10px;">
                             <button onclick="processSubmitFinalSale()"
-                                style="flex:1; background:var(--ios-green); color:#fff; border:none; border-radius:12px; padding:13px; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.1s ease;"
+                                style="flex:1; background:var(--ios-blue); color:#1a0806; border:none; border-radius:12px; padding:13px; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.1s ease;"
                                 onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
                                 ✅ บันทึก
                             </button>
