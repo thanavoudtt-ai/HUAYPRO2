@@ -1,6 +1,7 @@
 const BACKEND_API_URL = "https://script.google.com/macros/s/AKfycbxdJZA_-N-U-9jXPxA0lycEnNkJglioE8eP85WHmOglSKYhX_RKIwY_87IuMb-w2van/exec";
 
 let currentUser = {};
+let _sessionToken = null; // token สำหรับ single-session lock
 let currentBillItems = [];
 let currentHuayType = 'ลาว';
 let popupSelectedPosition = 'บน'; 
@@ -114,15 +115,17 @@ function handleLogin() {
     .then(data => {
         if(data.success) {
             currentUser = { role: data.role, username: data.username, name: data.name || data.username };
+            _sessionToken = data.sessionToken || null; // เก็บ token
             if(pinInput) pinInput.value = ""; 
             if(adminPassInput) adminPassInput.value = "";
             
             const loginBox = document.getElementById('loginContainer');
             if(loginBox) loginBox.classList.add('hidden');
             
-            startServerClock(); // เริ่ม server clock ทันทีหลัง login
-            loadTimeLimitsFromServer(); // โหลดเวลาปิดขายจาก Sheet
-            startSessionTimeout(); // เริ่ม session timeout
+            startServerClock();
+            loadTimeLimitsFromServer();
+            startSessionTimeout();
+            startSessionHeartbeat(); // ✅ เริ่ม heartbeat
             showMenu();
         } else {
             clearPinBoxes();
@@ -1473,6 +1476,16 @@ function filterTamra() {
 }
 
 function logout() {
+    // แจ้ง backend ปลด session lock
+    if(_sessionToken && currentUser.username) {
+        fetch(BACKEND_API_URL, {
+            method: "POST", mode: "cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "unlockSession", username: currentUser.username, sessionToken: _sessionToken })
+        }).catch(() => {});
+    }
+    _sessionToken = null;
+    if(_heartbeatInterval) clearInterval(_heartbeatInterval);
     currentUser = {};
     if(_clockInterval) clearInterval(_clockInterval);
     if(_sessionTimer) clearTimeout(_sessionTimer);
@@ -1708,6 +1721,21 @@ function backToAdminMenu() {
     showPage('superAdminMenuPage');
 }
 
+function goToColorMode() {
+    hideAllPages();
+    showPage('colorModePage');
+    initColorModeUI();
+}
+
+function backFromColorMode() {
+    // กลับไปหน้าที่ถูกต้องตาม role
+    if(currentUser.role === 'superadmin') {
+        goToAdminPage('settingsPage');
+    } else {
+        showMenu();
+    }
+}
+
 function goToDashboard() { 
     hideAllPages(); 
     showPage('dashboardPage');
@@ -1919,6 +1947,32 @@ function resetSessionTimer() {
             showStatusModal("🔒 หมดเวลาใช้งาน", "ระบบออกจากระบบอัตโนมัติแล้ว กรุณา login ใหม่", false, () => logout());
         }, 5 * 60 * 1000);
     }, 25 * 60 * 1000);
+}
+
+// ========== 🔐 SESSION HEARTBEAT (Single-Session Lock) ==========
+let _heartbeatInterval = null;
+
+function startSessionHeartbeat() {
+    if(_heartbeatInterval) clearInterval(_heartbeatInterval);
+    // ส่ง heartbeat ทุก 2 นาที เพื่อต่ออายุ session lock ใน Sheet
+    _heartbeatInterval = setInterval(() => {
+        if(!_sessionToken || !currentUser.username) return;
+        fetch(BACKEND_API_URL, {
+            method: "POST", mode: "cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "heartbeat", username: currentUser.username, sessionToken: _sessionToken })
+        })
+        .then(res => res.json()).then(data => {
+            // ถ้า backend บอกว่า session นี้ถูกแย่งแล้ว → force logout
+            if(data && data.forceLogout) {
+                clearInterval(_heartbeatInterval);
+                showStatusModal("🔒 ถูกออกจากระบบ", "มีการเข้าสู่ระบบจากเครื่องอื่น", false, () => {
+                    _sessionToken = null;
+                    logout();
+                });
+            }
+        }).catch(() => {});
+    }, 2 * 60 * 1000);
 }
 
 // ========== 🔔 เตือนใกล้หมดเวลาขาย ==========

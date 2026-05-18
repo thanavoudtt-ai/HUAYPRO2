@@ -4,8 +4,9 @@ const SHEET_DATA = "Base Huay2";
 const SHEET_SUPER_ADMIN = "Super Admin"; 
 const SHEET_CUSTOMER = "Customer"; 
 const SHEET_TAMRA = "ຕຳລາຝັນ";
-const SHEET_SETTINGS = "Settings";  // ชีทเก็บอัตราจ่ายรางวัล
-const SHEET_WIN_HISTORY = "WinHistory"; // ชีทเก็บประวัติคนถูกหวย
+const SHEET_SETTINGS = "Settings";
+const SHEET_WIN_HISTORY = "WinHistory";
+const SHEET_SESSIONS = "Sessions"; // ✅ เพิ่มใหม่: เก็บ session lock
 
 function doGet(e) {
   return HtmlService.createHtmlOutput("Web App is running successfully!");
@@ -97,11 +98,19 @@ function doPost(e) {
             
             if (dbName === inputUser && dbPin === inputPin) {
               const displayName = staffData[i][0].toString().trim();
+
+              // ✅ ตรวจ single-session lock
+              const sessionCheck = checkAndLockSession(ss, displayName);
+              if (!sessionCheck.allowed) {
+                return createResponse({ success: false, message: sessionCheck.message });
+              }
+
               return createResponse({ 
                 success: true, 
                 role: "staff", 
-                username: displayName,  // ✅ NAME ตรงกับที่ Sheet "Base Huay2" บันทึก
-                name: displayName
+                username: displayName,
+                name: displayName,
+                sessionToken: sessionCheck.token
               });
             }
           }
@@ -199,6 +208,16 @@ function doPost(e) {
     if (action === "changeAdminPassword") {
       if (data.role !== "superadmin") return createResponse({ success: false, message: "❌ ไม่มีสิทธิ์" });
       return createResponse(changeAdminPasswordData(data.oldPass, data.newPass));
+    }
+
+    // 18. Heartbeat — ต่ออายุ session lock
+    if (action === "heartbeat") {
+      return createResponse(heartbeatSession(data.username, data.sessionToken));
+    }
+
+    // 19. Unlock session — เมื่อ logout
+    if (action === "unlockSession") {
+      return createResponse(unlockSession(data.username, data.sessionToken));
     }
 
     return createResponse({ success: false, message: "ไม่พบ Action ที่ระบุ" });
@@ -771,4 +790,108 @@ function changeAdminPasswordData(oldPass, newPass) {
     }
     return { success: false, message: "❌ รหัสผ่านปัจจุบันไม่ถูกต้อง" };
   } catch(e) { return { success: false, message: e.toString() }; }
+}
+// ========== 🔐 SINGLE SESSION LOCK ==========
+// Sheet "Sessions": A=username B=sessionToken C=timestamp(ms) D=status
+
+function getOrCreateSessionSheet(ss) {
+  let sheet = ss.getSheetByName(SHEET_SESSIONS);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_SESSIONS);
+    sheet.getRange("A1:D1").setValues([["username","sessionToken","timestamp","status"]]);
+    sheet.getRange(1,1,1,4).setFontWeight("bold").setBackground("#0a84ff").setFontColor("#ffffff");
+  }
+  return sheet;
+}
+
+function checkAndLockSession(ss, username) {
+  try {
+    const sheet = getOrCreateSessionSheet(ss);
+    const data = sheet.getDataRange().getValues();
+    const now = new Date().getTime();
+    const EXPIRE_MS = 5 * 60 * 1000; // session หมดอายุใน 5 นาทีถ้าไม่มี heartbeat
+
+    // หา row ของ user นี้
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] && data[i][0].toString().trim().toLowerCase() === username.toLowerCase()) {
+        const lastSeen = parseInt(data[i][2]) || 0;
+        const status = data[i][3] ? data[i][3].toString().trim() : "";
+        const elapsed = now - lastSeen;
+
+        if (status === "active" && elapsed < EXPIRE_MS) {
+          // มี active session อยู่แล้ว — ห้าม login ซ้ำ
+          const minLeft = Math.ceil((EXPIRE_MS - elapsed) / 60000);
+          return { allowed: false, message: `บัญชี "${username}" กำลังใช้งานอยู่บนเครื่องอื่น\nรอให้อีกเครื่อง logout ก่อนแล้วลองใหม่` };
+        }
+
+        // session เก่าหมดอายุแล้ว — อัปเดตให้ใหม่
+        const newToken = Utilities.getUuid();
+        sheet.getRange(i + 1, 2).setValue(newToken);
+        sheet.getRange(i + 1, 3).setValue(now);
+        sheet.getRange(i + 1, 4).setValue("active");
+        return { allowed: true, token: newToken };
+      }
+    }
+
+    // ไม่มี row เลย — สร้างใหม่
+    const newToken = Utilities.getUuid();
+    sheet.appendRow([username, newToken, now, "active"]);
+    return { allowed: true, token: newToken };
+
+  } catch(e) {
+    // ถ้า error ให้ผ่านไปก่อน (fail-open) ไม่กวนการ login จริง
+    return { allowed: true, token: "fallback-" + new Date().getTime() };
+  }
+}
+
+function heartbeatSession(username, sessionToken) {
+  try {
+    if (!username || !sessionToken) return { success: false };
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = getOrCreateSessionSheet(ss);
+    const data = sheet.getDataRange().getValues();
+    const now = new Date().getTime();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] && data[i][0].toString().trim().toLowerCase() === username.toLowerCase()) {
+        const storedToken = data[i][1] ? data[i][1].toString().trim() : "";
+
+        // token ไม่ตรง = มีคนอื่น login แย่ง session ไปแล้ว
+        if (storedToken !== sessionToken) {
+          return { success: true, forceLogout: true };
+        }
+
+        // token ตรง — ต่ออายุ timestamp
+        sheet.getRange(i + 1, 3).setValue(now);
+        sheet.getRange(i + 1, 4).setValue("active");
+        return { success: true, forceLogout: false };
+      }
+    }
+    return { success: true, forceLogout: false };
+  } catch(e) {
+    return { success: true, forceLogout: false };
+  }
+}
+
+function unlockSession(username, sessionToken) {
+  try {
+    if (!username) return { success: false };
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = getOrCreateSessionSheet(ss);
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] && data[i][0].toString().trim().toLowerCase() === username.toLowerCase()) {
+        const storedToken = data[i][1] ? data[i][1].toString().trim() : "";
+        // ปลด session เฉพาะ token ตรงกัน (ป้องกัน user A ปลด session user A คนละเครื่อง)
+        if (!sessionToken || storedToken === sessionToken) {
+          sheet.getRange(i + 1, 4).setValue("inactive");
+        }
+        return { success: true };
+      }
+    }
+    return { success: true };
+  } catch(e) {
+    return { success: false };
+  }
 }
