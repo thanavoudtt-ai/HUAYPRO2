@@ -403,21 +403,21 @@
                     <div class="card" style="margin-bottom:0;">
                         <h2 style="font-size:15px; font-weight:800; margin-bottom:12px; color:var(--ios-green);">🔍 ศูนย์ตรวจเช็คยอดคนถูกหวย</h2>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                            <div class="input-group" style="margin:0;">
+                            <div class="input-group" style="margin:0; min-width:0;">
                                 <label>เลือกวันที่งวด</label>
-                                <input type="date" id="searchDate2" style="padding:10px; font-size:14px; font-weight:bold;">
+                                <input type="date" id="searchDate2" style="padding:10px; font-size:14px; font-weight:bold; width:100%; min-width:0;">
                             </div>
-                            <div class="input-group" style="margin:0;">
+                            <div class="input-group" style="margin:0; min-width:0;">
                                 <label>ระบุเลขรางวัล</label>
-                                <input type="text" id="searchWinNum2" placeholder="เลขรางวัล" maxlength="3" inputmode="numeric" style="text-align:center; font-weight:bold; padding:10px;">
+                                <input type="text" id="searchWinNum2" placeholder="เลขรางวัล" maxlength="3" inputmode="numeric" style="text-align:center; font-weight:bold; padding:10px; width:100%; min-width:0;">
                             </div>
                         </div>
                         <div class="input-group" style="margin-bottom:12px;">
                             <label>ระบุตำแหน่งรางวัล</label>
                             <select id="searchPosition2" style="font-size:14px; padding:10px; font-weight:bold;">
-                                <option value="ทั้งหมด" selected>🌐 ตรวจเช็คทั้งหมด</option>
-                                <option value="บน">🔺 ตรวจเฉพาะรางวัล (บน)</option>
-                                <option value="ล่าง">🔻 ตรวจเฉพาะรางวัล (ล่าง)</option>
+                                <option value="ทั้งหมด" selected>ทั้งหมด</option>
+                                <option value="บน">🔺 เฉพาะบน</option>
+                                <option value="ล่าง">🔻 เฉพาะล่าง</option>
                             </select>
                         </div>
                         <!-- ปุ่มค้นหาอยู่ใน card เหมือนหน้า Staff -->
@@ -494,21 +494,21 @@
                     <div class="card" style="margin-bottom:0;">
                         <h2 style="font-size:15px; font-weight:800; margin-bottom:12px; color:var(--ios-green);">🔍 ศูนย์ตรวจเช็คยอดคนถูกหวย</h2>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                            <div class="input-group" style="margin:0;">
+                            <div class="input-group" style="margin:0; min-width:0;">
                                 <label>เลือกวันที่งวด</label>
-                                <input type="date" id="searchDate" style="padding:10px; font-size:14px; font-weight:bold;">
+                                <input type="date" id="searchDate" style="padding:10px; font-size:14px; font-weight:bold; width:100%; min-width:0;">
                             </div>
-                            <div class="input-group" style="margin:0;">
+                            <div class="input-group" style="margin:0; min-width:0;">
                                 <label>ระบุเลขรางวัล</label>
-                                <input type="text" id="searchWinNum" placeholder="เลขรางวัล" maxlength="3" inputmode="numeric" style="text-align:center; font-weight:bold; padding:10px;">
+                                <input type="text" id="searchWinNum" placeholder="เลขรางวัล" maxlength="3" inputmode="numeric" style="text-align:center; font-weight:bold; padding:10px; width:100%; min-width:0;">
                             </div>
                         </div>
                         <div class="input-group" style="margin-bottom:0;">
                             <label>ระบุตำแหน่งรางวัล (สำหรับหวยไทย)</label>
                             <select id="searchPosition" style="font-size:14px; padding:10px; font-weight:bold; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:10px; width:100%;">
-                                <option value="ทั้งหมด" selected>🌐 ตรวจเช็คทั้งหมด (รวม/บน/ล่าง)</option>
-                                <option value="บน">🔺 ตรวจเฉพาะรางวัล (บน)</option>
-                                <option value="ล่าง">🔻 ตรวจเฉพาะรางวัล (ล่าง)</option>
+                                <option value="ทั้งหมด" selected>ทั้งหมด</option>
+                                <option value="บน">🔺 เฉพาะบน</option>
+                                <option value="ล่าง">🔻 เฉพาะล่าง</option>
                             </select>
                         </div>
                         <!-- ปุ่มค้นหาอยู่ใน form -->
@@ -564,13 +564,13 @@
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                        <div class="input-group" style="margin:0;">
+                        <div class="input-group" style="margin:0; min-width:0;">
                             <label>เลขเด็ด</label>
-                            <input type="text" id="huayNum" placeholder="กรอกตัวเลข" maxlength="3" inputmode="numeric" oninput="handleNumChange()" style="font-size:22px; font-weight:bold; text-align:center; color: var(--ios-blue); border-color: rgba(10,132,255,0.3);">
+                            <input type="text" id="huayNum" placeholder="กรอกตัวเลข" maxlength="3" inputmode="numeric" oninput="handleNumChange()" style="font-size:22px; font-weight:bold; text-align:center; color: var(--ios-blue); border-color: rgba(10,132,255,0.3); width:100%; min-width:0;">
                         </div>
-                        <div class="input-group" id="mainAmountInputSection" style="margin:0;">
+                        <div class="input-group" id="mainAmountInputSection" style="margin:0; min-width:0;">
                             <label>จำนวนเงิน (₭)</label>
-                            <input type="text" id="huayAmt" placeholder="เงินแทง" inputmode="numeric" style="font-size:22px; font-weight:bold; text-align:center; color: var(--ios-green);">
+                            <input type="text" id="huayAmt" placeholder="เงินแทง" inputmode="numeric" style="font-size:22px; font-weight:bold; text-align:center; color: var(--ios-green); width:100%; min-width:0;">
                         </div>
                     </div>
 
@@ -790,8 +790,7 @@
                     </circle>
                 </svg>
             </div>
-            <h3 id="statusTitle" style="font-size:17px; font-weight:800; margin-bottom:6px; letter-spacing:0.3px;">ระบบงาน</h3>
-            <p id="statusMessage" style="color:var(--text-muted); font-size:13px; margin:0; white-space:pre-line; line-height:1.6;"></p>
+            <h3 id="statusTitle" style="font-size:18px; font-weight:800; margin:0; letter-spacing:0.3px;">ระบบงาน</h3>
         </div>
     </div>
     <script src="app.js"></script>

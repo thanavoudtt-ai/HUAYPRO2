@@ -814,22 +814,59 @@ function showReceiptSlipDirect(billId, staffName, dateStr, items) {
             <button onclick="closeReceiptAndReset()" style="background:#ff453a;color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:300px;">❌ ปิดและขายต่อ</button>`;
         document.body.appendChild(modal);
     }
-    document.getElementById('receiptSlipContent').innerHTML = slipHtml;
+    // ---- off-screen render: วาง HTML นอกจอ render แล้วค่อยเปิด modal ----
+    // 1. เตรียม off-screen container
+    let offscreen = document.getElementById('_slipOffscreen');
+    if(!offscreen) {
+        offscreen = document.createElement('div');
+        offscreen.id = '_slipOffscreen';
+        offscreen.style.cssText = 'position:fixed;left:-9999px;top:0;pointer-events:none;z-index:-1;';
+        document.body.appendChild(offscreen);
+    }
+    offscreen.innerHTML = slipHtml;
 
-    // scale ลงให้พอดีหน้าจอมือถือ (540px → ~300px display)
-    const scaleEl = document.getElementById('receiptSlipContent');
-    const displayW = Math.min(window.innerWidth - 24, 300);
-    const scale = displayW / W;
-    scaleEl.style.transform = `scale(${scale})`;
-    scaleEl.style.width = W + 'px';
-    scaleEl.style.marginBottom = `-${H * (1 - scale)}px`; // ดึงพื้นที่คืน
-
-    // reset state ทุกครั้งที่เปิด
+    // reset modal state — ยังไม่เปิด
     document.getElementById('receiptSlipImgWrap').style.display = 'none';
-    document.getElementById('receiptSlipContent').style.display = 'block';
+    document.getElementById('receiptSlipContent').innerHTML = '';
     const rBtn = document.getElementById('receiptRenderBtn');
-    if(rBtn) { rBtn.style.display = 'block'; rBtn.innerText = '📸 แปลงเป็นรูปเพื่อบันทึก'; rBtn.disabled = false; }
-    modal.style.display = 'flex';
+    if(rBtn) rBtn.style.display = 'none';
+
+    // แสดง loading overlay แทน modal จริง ระหว่างรอ render
+    showLoading(true);
+
+    // 2. render จาก off-screen element
+    if(typeof html2canvas === 'undefined') {
+        showLoading(false);
+        // fallback: แสดง HTML ปกติ
+        document.getElementById('receiptSlipContent').innerHTML = slipHtml;
+        document.getElementById('receiptSlipContent').style.display = 'block';
+        modal.style.display = 'flex';
+        return;
+    }
+
+    const captureEl = offscreen.querySelector('#receiptSlipCapture');
+    html2canvas(captureEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+        showLoading(false);
+        const dataUrl = canvas.toDataURL('image/png');
+        offscreen.innerHTML = ''; // ล้าง off-screen
+
+        // 3. ใส่รูปใน modal แล้วเปิด — user เห็นรูปทันทีเลย
+        const img = document.getElementById('receiptSlipImg');
+        if(img) {
+            img.src = dataUrl;
+            img.style.display = 'block';
+        }
+        document.getElementById('receiptSlipImgWrap').style.display = 'flex';
+        document.getElementById('receiptSlipContent').style.display = 'none';
+        modal.style.display = 'flex';
+    }).catch(() => {
+        showLoading(false);
+        offscreen.innerHTML = '';
+        // fallback: แสดง HTML ปกติ
+        document.getElementById('receiptSlipContent').innerHTML = slipHtml;
+        document.getElementById('receiptSlipContent').style.display = 'block';
+        modal.style.display = 'flex';
+    });
 }
 
 // แปลง HTML → <img> จริงๆ ให้ iOS long-press native ได้เลย
@@ -838,28 +875,47 @@ function renderReceiptToImage() {
     if(!el) return;
     if(typeof html2canvas === 'undefined') { alert('ไม่พบ html2canvas'); return; }
 
-    const btn = document.getElementById('receiptRenderBtn');
-    if(btn) { btn.innerText = '⏳ กำลังแปลง...'; btn.disabled = true; }
+    // แสดง loading spinner ระหว่างรอ
+    const wrap = document.getElementById('receiptSlipImgWrap');
+    const img  = document.getElementById('receiptSlipImg');
+    if(wrap && img) {
+        img.src = '';
+        wrap.style.display = 'flex';
+        img.style.display = 'none';
+        // ใส่ spinner ชั่วคราว
+        let spinner = wrap.querySelector('.slip-spinner');
+        if(!spinner) {
+            spinner = document.createElement('div');
+            spinner.className = 'slip-spinner';
+            spinner.style.cssText = 'color:#fff;font-size:13px;opacity:0.7;padding:20px 0;';
+            spinner.innerText = '⏳ กำลังสร้างรูปใบบิน...';
+            wrap.insertBefore(spinner, img);
+        }
+        spinner.style.display = 'block';
+    }
 
     html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
         const dataUrl = canvas.toDataURL('image/png');
-        const img = document.getElementById('receiptSlipImg');
         if(img) {
             img.src = dataUrl;
-            // ซ่อน HTML ต้นฉบับ แสดง img จริงๆ แทน
-            document.getElementById('receiptSlipContent').style.display = 'none';
-            document.getElementById('receiptSlipImgWrap').style.display = 'flex';
-            if(btn) btn.style.display = 'none';
+            img.style.display = 'block';
+            // ซ่อน HTML ต้นฉบับ
+            const content = document.getElementById('receiptSlipContent');
+            if(content) content.style.display = 'none';
+            // ซ่อน spinner
+            const sp = wrap ? wrap.querySelector('.slip-spinner') : null;
+            if(sp) sp.style.display = 'none';
         }
     }).catch(() => {
-        if(btn) { btn.innerText = '📸 แปลงเป็นรูปเพื่อบันทึก'; btn.disabled = false; }
+        const content = document.getElementById('receiptSlipContent');
+        if(content) content.style.display = 'block';
+        if(wrap) wrap.style.display = 'none';
         alert('แปลงรูปไม่สำเร็จ กรุณาลองใหม่');
     });
 }
 
-// compat: ปุ่มเก่าที่อาจเรียกอยู่
+// compat
 function captureReceiptSlip() { renderReceiptToImage(); }
-
 
 function closeReceiptAndReset() {
     const modal = document.getElementById('receiptSlipModal');
@@ -1192,6 +1248,7 @@ function openWinnerSlip(billId) {
         data.items.forEach(it => total += it.price);
 
         const W = 540, H = 960;
+        const winTotal = winItems.reduce((s,w) => s + w.winAmount, 0); // ✅ declare ที่นี่
         const cols = [col1, col2, col3, col4, col5];
         const numSize=13, typeSize=9, amtSize=11, rowPad=4;
 
@@ -1277,22 +1334,49 @@ function openWinnerSlip(billId) {
                 <button onclick="document.getElementById('winnerSlipModal').style.display='none'" style="background:#ff453a;color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:300px;">❌ ปิดหน้าต่าง</button>`;
             document.body.appendChild(modal);
         }
-        document.getElementById('winnerSlipContent').innerHTML = slipHtml;
+        // ---- off-screen render ----
+        let offscreen = document.getElementById('_slipOffscreen');
+        if(!offscreen) {
+            offscreen = document.createElement('div');
+            offscreen.id = '_slipOffscreen';
+            offscreen.style.cssText = 'position:fixed;left:-9999px;top:0;pointer-events:none;z-index:-1;';
+            document.body.appendChild(offscreen);
+        }
+        offscreen.innerHTML = slipHtml;
 
-        // scale ลงให้พอดีหน้าจอมือถือ
-        const scaleEl = document.getElementById('winnerSlipContent');
-        const displayW = Math.min(window.innerWidth - 24, 300);
-        const scale = displayW / W;
-        scaleEl.style.transform = `scale(${scale})`;
-        scaleEl.style.width = W + 'px';
-        scaleEl.style.marginBottom = `-${H * (1 - scale)}px`;
-
-        // reset state
         document.getElementById('winnerSlipImgWrap').style.display = 'none';
-        document.getElementById('winnerSlipContent').style.display = 'block';
+        document.getElementById('winnerSlipContent').innerHTML = '';
         const wBtn = document.getElementById('winnerRenderBtn');
-        if(wBtn) { wBtn.style.display = 'block'; wBtn.innerText = '📸 แปลงเป็นรูปเพื่อบันทึก'; wBtn.disabled = false; }
-        modal.style.display = 'flex';
+        if(wBtn) wBtn.style.display = 'none';
+
+        showLoading(true);
+
+        if(typeof html2canvas === 'undefined') {
+            showLoading(false);
+            document.getElementById('winnerSlipContent').innerHTML = slipHtml;
+            document.getElementById('winnerSlipContent').style.display = 'block';
+            modal.style.display = 'flex';
+            return;
+        }
+
+        const captureEl = offscreen.querySelector('#winnerSlipCapture');
+        html2canvas(captureEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+            showLoading(false);
+            const dataUrl = canvas.toDataURL('image/png');
+            offscreen.innerHTML = '';
+
+            const img = document.getElementById('winnerSlipImg');
+            if(img) { img.src = dataUrl; img.style.display = 'block'; }
+            document.getElementById('winnerSlipImgWrap').style.display = 'flex';
+            document.getElementById('winnerSlipContent').style.display = 'none';
+            modal.style.display = 'flex';
+        }).catch(() => {
+            showLoading(false);
+            offscreen.innerHTML = '';
+            document.getElementById('winnerSlipContent').innerHTML = slipHtml;
+            document.getElementById('winnerSlipContent').style.display = 'block';
+            modal.style.display = 'flex';
+        });
 
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
@@ -1302,20 +1386,37 @@ function renderWinnerToImage() {
     if(!el) return;
     if(typeof html2canvas === 'undefined') { alert('ไม่พบ html2canvas'); return; }
 
-    const btn = document.getElementById('winnerRenderBtn');
-    if(btn) { btn.innerText = '⏳ กำลังแปลง...'; btn.disabled = true; }
+    const wrap = document.getElementById('winnerSlipImgWrap');
+    const img  = document.getElementById('winnerSlipImg');
+    if(wrap && img) {
+        img.src = '';
+        wrap.style.display = 'flex';
+        img.style.display = 'none';
+        let spinner = wrap.querySelector('.slip-spinner');
+        if(!spinner) {
+            spinner = document.createElement('div');
+            spinner.className = 'slip-spinner';
+            spinner.style.cssText = 'color:#fff;font-size:13px;opacity:0.7;padding:20px 0;';
+            spinner.innerText = '⏳ กำลังสร้างรูปใบบิน...';
+            wrap.insertBefore(spinner, img);
+        }
+        spinner.style.display = 'block';
+    }
 
     html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
         const dataUrl = canvas.toDataURL('image/png');
-        const img = document.getElementById('winnerSlipImg');
         if(img) {
             img.src = dataUrl;
-            document.getElementById('winnerSlipContent').style.display = 'none';
-            document.getElementById('winnerSlipImgWrap').style.display = 'flex';
-            if(btn) btn.style.display = 'none';
+            img.style.display = 'block';
+            const content = document.getElementById('winnerSlipContent');
+            if(content) content.style.display = 'none';
+            const sp = wrap ? wrap.querySelector('.slip-spinner') : null;
+            if(sp) sp.style.display = 'none';
         }
     }).catch(() => {
-        if(btn) { btn.innerText = '📸 แปลงเป็นรูปเพื่อบันทึก'; btn.disabled = false; }
+        const content = document.getElementById('winnerSlipContent');
+        if(content) content.style.display = 'block';
+        if(wrap) wrap.style.display = 'none';
         alert('แปลงรูปไม่สำเร็จ กรุณาลองใหม่');
     });
 }
@@ -1390,20 +1491,23 @@ let statusModalTimer = null; let statusModalCallback = null;
 function showStatusModal(title, message, isSuccess, callback) {
     if(statusModalTimer) clearTimeout(statusModalTimer);
 
-    document.getElementById('statusTitle').innerText = title;
-    document.getElementById('statusMessage').innerText = message;
+    // ใช้แค่ title สั้นๆ — ไม่แสดง message ยาว
+    const shortTitle = isSuccess ? 'สำเร็จ' :
+        (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('หมดเวลา') || title.includes('ใกล้') || title.includes('ล็อก') || title.includes('ปลดล็อก'))
+            ? title.replace(/[💎💥⚠️🔒🔓✅❌]/g,'').trim()
+            : 'ไม่สำเร็จ';
+
+    document.getElementById('statusTitle').innerText = shortTitle;
     statusModalCallback = callback;
 
-    // เลือก SVG ที่จะแสดง
+    // เลือก SVG
     const svgSuccess = document.getElementById('statusSvgSuccess');
     const svgFail    = document.getElementById('statusSvgFail');
     const svgWarn    = document.getElementById('statusSvgWarn');
     [svgSuccess, svgFail, svgWarn].forEach(s => s.style.display = 'none');
 
-    // reset stroke ก่อน animate
     function resetAndAnimate(svgEl) {
         svgEl.style.display = 'block';
-        // force reflow เพื่อ reset transition
         const strokes = svgEl.querySelectorAll('[stroke-dashoffset]');
         strokes.forEach(el => {
             const orig = el.getAttribute('stroke-dasharray');
@@ -1414,9 +1518,10 @@ function showStatusModal(title, message, isSuccess, callback) {
         dots.forEach(el => { el.style.transition = 'none'; el.style.opacity = '0'; });
 
         requestAnimationFrame(() => requestAnimationFrame(() => {
-            // restore transitions แล้ว animate ไปที่ 0
             strokes.forEach(el => {
-                el.style.transition = el.getAttribute('style').match(/transition:[^;]+/)?.[0] || '';
+                const t = el.getAttribute('style') || '';
+                const m = t.match(/transition:([^;]+)/);
+                el.style.transition = m ? m[0] : '';
                 el.style.strokeDashoffset = '0';
             });
             dots.forEach(el => {
@@ -1426,11 +1531,8 @@ function showStatusModal(title, message, isSuccess, callback) {
         }));
     }
 
-    // กำหนด title color ตาม type
     const titleEl = document.getElementById('statusTitle');
-
-    // detect type จาก isSuccess หรือ title
-    const isWarn = !isSuccess && (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('หมดเวลา') || title.includes('ใกล้'));
+    const isWarn = !isSuccess && (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('หมดเวลา') || title.includes('ใกล้') || title.includes('ล็อก') || title.includes('ปลดล็อก'));
 
     if(isSuccess) {
         resetAndAnimate(svgSuccess);
@@ -1444,15 +1546,13 @@ function showStatusModal(title, message, isSuccess, callback) {
     }
 
     document.getElementById('statusModal').style.display = 'flex';
-
-    const delay = isSuccess ? 1400 : 2600;
+    const delay = isSuccess ? 1400 : 2200;
     statusModalTimer = setTimeout(() => closeStatusModal(), delay);
 }
 
 function closeStatusModal() {
     if(statusModalTimer) clearTimeout(statusModalTimer);
     document.getElementById('statusModal').style.display = 'none';
-    // reset title color
     document.getElementById('statusTitle').style.color = '';
     if(statusModalCallback && typeof statusModalCallback === 'function') {
         statusModalCallback();
