@@ -61,7 +61,7 @@ let _loginLockTimer = null;
 function handleLogin() {
     // ตรวจสอบว่าถูก lock อยู่หรือไม่
     if(_loginLocked) {
-        alert("🔒 กรอกรหัสผิดเกิน 5 ครั้ง กรุณารอ 5 นาที");
+        showStatusModal("🔒 ระบบล็อกชั่วคราว", "กรอกรหัสผิดเกิน 5 ครั้ง\nกรุณารอ 5 นาที", false);
         return;
     }
     const userSelect = document.getElementById('loginUser'); // ตอนนี้เป็นช่องพิมพ์แล้ว
@@ -125,18 +125,20 @@ function handleLogin() {
             startSessionTimeout(); // เริ่ม session timeout
             showMenu();
         } else {
+            clearPinBoxes();
             _loginAttempts++;
             if(_loginAttempts >= 5) {
                 _loginLocked = true;
-                alert(`🔒 กรอกรหัสผิด 5 ครั้ง ระบบล็อก 5 นาที`);
+                showStatusModal("🔒 ระบบล็อก", `กรอกรหัสผิด 5 ครั้ง\nกรุณารอ 5 นาที`, false);
                 if(_loginLockTimer) clearTimeout(_loginLockTimer);
                 _loginLockTimer = setTimeout(() => {
                     _loginLocked = false;
                     _loginAttempts = 0;
-                    alert("🔓 ปลดล็อกแล้ว สามารถ login ได้อีกครั้ง");
+                    showStatusModal("🔓 ปลดล็อกแล้ว", "สามารถเข้าสู่ระบบได้อีกครั้ง", true);
                 }, 5 * 60 * 1000);
             } else {
-                alert(data.message + `\n(ครั้งที่ ${_loginAttempts}/5)`);
+                const remain = 5 - _loginAttempts;
+                showStatusModal("❌ เข้าสู่ระบบไม่สำเร็จ", `ชื่อหรือรหัส PIN ไม่ถูกต้อง\nเหลืออีก ${remain} ครั้ง`, false);
             }
         }
     })
@@ -146,20 +148,94 @@ function handleLogin() {
     });
 }
 
+// PIN Box functions
+function focusPinBox(index) {
+    const el = document.getElementById('pin' + index);
+    if(el) el.focus();
+}
+
+function onPinInput(el, index) {
+    // รับเฉพาะตัวเลข
+    el.value = el.value.replace(/[^0-9]/g, '');
+    if(el.value.length === 1 && index < 3) {
+        focusPinBox(index + 1);
+    }
+    // sync loginPin hidden input
+    syncPinValue();
+    // highlight border
+    el.style.borderColor = el.value ? 'var(--ios-blue)' : 'var(--border-color)';
+}
+
+function onPinKey(event, index) {
+    if(event.key === 'Backspace') {
+        const el = document.getElementById('pin' + index);
+        if(!el.value && index > 0) {
+            focusPinBox(index - 1);
+            document.getElementById('pin' + (index-1)).value = '';
+            syncPinValue();
+        }
+    }
+}
+
+let _pinLoginPending = false;
+
+function syncPinValue() {
+    let pin = '';
+    for(let i = 0; i < 4; i++) {
+        const el = document.getElementById('pin' + i);
+        pin += el ? (el.value || '') : '';
+    }
+    const hidden = document.getElementById('loginPin');
+    if(hidden) hidden.value = pin;
+    // auto login เมื่อครบ 4 หลัก — ป้องกันเรียกซ้ำ
+    if(pin.length === 4 && !_pinLoginPending) {
+        _pinLoginPending = true;
+        setTimeout(() => { _pinLoginPending = false; handleLogin(); }, 150);
+    }
+}
+
+function clearPinBoxes() {
+    _pinLoginPending = false;
+    for(let i = 0; i < 4; i++) {
+        const el = document.getElementById('pin' + i);
+        if(el) { el.value = ''; el.style.borderColor = 'var(--border-color)'; }
+    }
+    const hidden = document.getElementById('loginPin');
+    if(hidden) hidden.value = '';
+}
+
 function toggleLoginMode() {
     isAdminLoginMode = !isAdminLoginMode;
     const staffSection = document.getElementById('staffLoginSection');
     const adminSection = document.getElementById('adminLoginSection');
-    const toggleBtn = document.getElementById('toggleLoginBtn');
-    
+    const subtitle     = document.getElementById('loginSubtitle');
+    const thumb        = document.getElementById('modeSwitchThumb');
+    const track        = document.getElementById('modeSwitchTrack');
+    const labelLeft    = document.getElementById('modeSwitchLabel');
+    const labelRight   = document.getElementById('modeSwitchLabelRight');
+    const avatar       = document.getElementById('loginAvatar');
+
     if (isAdminLoginMode) {
         staffSection.classList.add('hidden');
         adminSection.classList.remove('hidden');
-        toggleBtn.innerText = "👤 เปลี่ยนเป็นล็อกอิน พนักงาน";
+        if(subtitle)    subtitle.innerText = "โหมด Super Admin";
+        if(thumb)       thumb.style.transform = 'translateX(16px)';
+        if(track)       track.style.background = 'var(--ios-pink)';
+        if(labelLeft)   labelLeft.style.color = 'var(--text-muted)';
+        if(labelRight)  { labelRight.innerText = 'Admin'; labelRight.style.color = 'var(--ios-pink)'; }
+        if(avatar)      avatar.style.borderColor = 'var(--ios-pink)';
+        setTimeout(() => { const ap = document.getElementById('adminPassword'); if(ap) ap.focus(); }, 100);
     } else {
         staffSection.classList.remove('hidden');
         adminSection.classList.add('hidden');
-        toggleBtn.innerText = "👑 เปลี่ยนเป็นล็อกอิน แอดมินสูงสุด";
+        if(subtitle)    subtitle.innerText = "เข้าสู่ระบบพนักงาน";
+        if(thumb)       thumb.style.transform = 'translateX(0)';
+        if(track)       track.style.background = 'var(--ios-blue)';
+        if(labelLeft)   labelLeft.style.color = 'var(--text-muted)';
+        if(labelRight)  { labelRight.innerText = 'Admin'; labelRight.style.color = 'var(--ios-blue)'; }
+        if(avatar)      avatar.style.borderColor = 'var(--ios-blue)';
+        clearPinBoxes();
+        setTimeout(() => { const lu = document.getElementById('loginUser'); if(lu) lu.focus(); }, 100);
     }
 }
 
@@ -178,8 +254,8 @@ function showLoading(status) {
 
 function initRecorderPage() {
     hideAllPages();
-    document.getElementById('recorderPage').classList.remove('hidden');
-    document.getElementById('recorderTitle').innerText = `📝 ลงบิลแทงหวย - หวย${currentHuayType}`;
+    showPage('recorderWrapper');
+    document.getElementById('recorderTitle') && (document.getElementById('recorderTitle').innerText = `📝 ลงบิลแทงหวย`);
     currentBillItems = [];
     renderBillTable();
     generateBillId();
@@ -803,14 +879,15 @@ function loadDashboardData() {
         const yesterdayStr = `${yest.getDate()}/${yest.getMonth()+1}/${yest.getFullYear()}`;
         const thirtyDaysAgo = new Date(now); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate()-30);
         
-        let todaySales = 0, yesterdaySales = 0, monthSales = 0;
+        let todaySales = 0, yesterdaySales = 0, monthSales = 0, weekSales = 0;
         (data.rawData || []).forEach(row => {
             if(row.status === 'ยกเลิก') return;
-            // แปลง date string เป็น Date object เพื่อเปรียบเทียบ 30 วัน
             const parts = row.date.split('/');
             if(parts.length === 3) {
                 const rowDate = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
                 if(rowDate >= thirtyDaysAgo) monthSales += row.price;
+                const diffDays = Math.floor((now - rowDate) / 86400000);
+                if(diffDays <= 6) weekSales += row.price;
             }
             if(row.date === todayStr) todaySales += row.price;
             if(row.date === yesterdayStr) yesterdaySales += row.price;
@@ -820,9 +897,14 @@ function loadDashboardData() {
         const statToday = document.getElementById('statToday');
         const statYesterday = document.getElementById('statYesterday');
         const statMonth = document.getElementById('statMonth');
+        const statWeek = document.getElementById('statWeek');
         if(statToday) statToday.innerText = todaySales.toLocaleString() + " ₭";
         if(statYesterday) statYesterday.innerText = yesterdaySales.toLocaleString() + " ₭";
         if(statMonth) statMonth.innerText = monthSales.toLocaleString() + " ₭";
+        if(statWeek) statWeek.innerText = weekSales.toLocaleString() + " ₭";
+
+        // วาดกราฟ 7 วันย้อนหลัง
+        renderSalesChart(data.rawData || []);
 
         // Super admin: แสดงยอดแยกพนักงาน + หน้าตั้งค่าอัตราจ่าย
         if(currentUser.role === 'superadmin') {
@@ -1206,15 +1288,16 @@ function filterTamra() {
 
 function logout() {
     currentUser = {};
-    document.getElementById('loginContainer').classList.remove('hidden');
+    if(_clockInterval) clearInterval(_clockInterval);
+    if(_sessionTimer) clearTimeout(_sessionTimer);
+    hideAllPages();
     const mainApp = document.getElementById('mainApp');
     if(mainApp) mainApp.style.display = 'none';
-    hideAllPages();
-    // clear login fields
+    const loginBox = document.getElementById('loginContainer');
+    if(loginBox) { loginBox.style.display = 'flex'; loginBox.classList.remove('hidden'); }
+    clearPinBoxes();
     const loginUser = document.getElementById('loginUser');
-    const loginPin = document.getElementById('loginPin');
-    if(loginUser) { loginUser.value = ''; loginUser.focus(); }
-    if(loginPin) loginPin.value = '';
+    if(loginUser) loginUser.value = '';
 }
 
 let statusModalTimer = null; let statusModalCallback = null;
@@ -1243,50 +1326,82 @@ function closeStatusModal() {
 }
 
 function hideAllPages() { 
-    ['menuPage','recorderPage','dashboardPage','adminSettingsPage',
+    ['menuPage','recorderWrapper','dashboardPage','adminSettingsPage',
      'superAdminMenuPage','staffPage','salesReportPage','timeLimitPage','checkWinPage',
-     'billHistoryPage'
+     'billHistoryPage','checkWinStaffPage','payoutPage'
     ].forEach(id => {
         const el = document.getElementById(id);
-        if(el) el.classList.add('hidden');
+        if(el) { el.classList.add('hidden'); el.style.display = 'none'; }
     });
+}
+
+// helper แสดง page แบบ flex
+function showPage(id) {
+    const el = document.getElementById(id);
+    if(el) { 
+        el.classList.remove('hidden'); 
+        el.style.display = 'flex';
+        el.style.height = '100%';
+    }
 }
 
 function showMenu() { 
     hideAllPages();
     const mainApp = document.getElementById('mainApp');
-    if(mainApp) mainApp.style.display = 'block';
+    if(mainApp) mainApp.style.display = 'flex';
     const nameEl = document.getElementById('userProfileName');
     const badgeEl = document.getElementById('userBadgeRole');
     if(nameEl) nameEl.innerText = currentUser.name || currentUser.username || 'พนักงานขาย';
     if(badgeEl) badgeEl.innerText = currentUser.role === 'superadmin' ? '👑 Super Admin' : '🧑‍💼 Staff Agent';
     if(currentUser.role === 'superadmin') {
-        document.getElementById('superAdminMenuPage').classList.remove('hidden');
+        showPage('superAdminMenuPage');
     } else { 
-        document.getElementById('menuPage').classList.remove('hidden'); 
+        showPage('menuPage');
     } 
 }
 
 function goToAdminPage(pageId) {
     hideAllPages();
-    document.getElementById(pageId).classList.remove('hidden');
+    showPage(pageId);
     if(pageId === 'salesReportPage') loadAdminSalesReport();
     if(pageId === 'staffPage') loadStaffList();
     if(pageId === 'timeLimitPage') loadTimeLimits();
+    if(pageId === 'payoutPage') loadPayoutSettings();
 }
 
 function backToAdminMenu() {
     hideAllPages();
-    document.getElementById('superAdminMenuPage').classList.remove('hidden');
+    showPage('superAdminMenuPage');
 }
 
 function goToDashboard() { 
     hideAllPages(); 
-    document.getElementById('dashboardPage').classList.remove('hidden'); 
+    showPage('dashboardPage');
     loadDashboardData();
-    // superadmin โหลดหน้าตั้งค่าอัตราจ่ายด้วย
     if(currentUser.role === 'superadmin') loadPayoutSettings();
 }
+
+function backToMenu() { showMenu(); }
+
+function goToBillHistory() {
+    hideAllPages();
+    showPage('billHistoryPage');
+    loadBillHistory();
+}
+
+function goToCheckWin() {
+    hideAllPages();
+    showPage('checkWinStaffPage');
+    // set วันที่เป็นวันนี้อัตโนมัติ
+    const now = new Date();
+    const dateEl = document.getElementById('searchDate');
+    if(dateEl && !dateEl.value) {
+        dateEl.value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+    }
+    document.getElementById('winnersResultList').innerHTML = '';
+}
+
+function goToRecorder() { initRecorderPage(); }
 
 // ⚙️ โหลดอัตราจ่ายรางวัลจาก backend
 function loadPayoutSettings() {
@@ -1783,4 +1898,78 @@ function executeSearchWinners2() {
         </button>`;
         div.innerHTML = html;
     }).catch(err => { showLoading(false); alert(err.toString()); });
+}
+// 📈 วาดกราฟยอดขาย 7 วันย้อนหลัง
+let _salesChartInstance = null;
+function renderSalesChart(rawData) {
+    const canvas = document.getElementById('salesChart');
+    const emptyEl = document.getElementById('salesChartEmpty');
+    if(!canvas) return;
+
+    // สร้าง 7 วันย้อนหลัง
+    const days = [];
+    const sales = [];
+    const now = new Date();
+    for(let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const label = `${d.getDate()}/${d.getMonth()+1}`;
+        const dateStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+        days.push(label);
+        const total = rawData.filter(r => r.date === dateStr && r.status !== 'ยกเลิก').reduce((s,r) => s + r.price, 0);
+        sales.push(total);
+    }
+
+    const hasData = sales.some(v => v > 0);
+    if(!hasData) {
+        canvas.style.display = 'none';
+        if(emptyEl) emptyEl.style.display = 'block';
+        return;
+    }
+    canvas.style.display = 'block';
+    if(emptyEl) emptyEl.style.display = 'none';
+
+    // ลบกราฟเก่าถ้ามี
+    if(_salesChartInstance) { _salesChartInstance.destroy(); _salesChartInstance = null; }
+
+    const max = Math.max(...sales);
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth || 300;
+    canvas.height = 160;
+
+    const W = canvas.width, H = canvas.height;
+    const padL = 12, padR = 12, padT = 16, padB = 28;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+    const barW = chartW / days.length * 0.6;
+    const gap = chartW / days.length;
+
+    ctx.clearRect(0, 0, W, H);
+
+    days.forEach((label, i) => {
+        const x = padL + i * gap + gap * 0.2;
+        const barH = max > 0 ? (sales[i] / max) * chartH : 0;
+        const y = padT + chartH - barH;
+        const isToday = i === 6;
+
+        // แท่ง
+        ctx.fillStyle = isToday ? '#0a84ff' : '#1c3a5e';
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, barH, 4);
+        ctx.fill();
+
+        // label วัน
+        ctx.fillStyle = '#8e8e93';
+        ctx.font = '10px Noto Sans Thai, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, x + barW/2, H - 8);
+
+        // ยอด
+        if(sales[i] > 0) {
+            const kval = sales[i] >= 1000 ? Math.round(sales[i]/1000) + 'K' : sales[i];
+            ctx.fillStyle = isToday ? '#0a84ff' : '#8e8e93';
+            ctx.font = '9px Noto Sans Thai, sans-serif';
+            ctx.fillText(kval, x + barW/2, y - 4);
+        }
+    });
 }

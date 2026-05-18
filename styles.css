@@ -12,9 +12,41 @@
     --text-muted: #8e8e93;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Thai', sans-serif; -webkit-tap-highlight-color: transparent; }
-body { background-color: var(--bg-main); color: var(--text-main); -webkit-user-select: none; user-select: none; }
-.page-wrapper { width: 100%; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-main); position: relative; }
-.app-container { padding: 16px; width: 100%; display: flex; flex-direction: column; animation: fadeIn 0.3s ease-in-out; }
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* ป้องกัน scroll ทั้งหมด */
+    position: fixed;  /* ป้องกัน iOS bounce */
+    background-color: var(--bg-main);
+}
+
+body { color: var(--text-main); -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
+
+.page-wrapper {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100vh;
+    height: 100dvh; /* dynamic viewport height สำหรับ iOS */
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-main);
+    position: relative;
+    overflow: hidden;
+}
+
+/* ส่วนที่ scroll ได้ต้องระบุเองในแต่ละ page */
+.app-container {
+    padding: 16px;
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease-in-out;
+}
 .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 .hidden { display: none !important; }
 .input-group { display: flex; flex-direction: column; margin-bottom: 16px; }
@@ -57,3 +89,37 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 .btn-amt-chip:active { transform: scale(0.88); }
 .menu-item { transition: transform 0.12s ease, box-shadow 0.12s ease; }
 .menu-item:active { transform: scale(0.94); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+/* 📱 BOTTOM ACTION BAR */
+.bottom-bar {
+    flex-shrink: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    padding: 10px 16px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.bottom-bar .bb-btn {
+    flex: 1;
+    border: none;
+    border-radius: 12px;
+    padding: 13px 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.1s ease;
+    font-family: 'Noto Sans Thai', sans-serif;
+    color: #fff;
+}
+.bottom-bar .bb-btn:active { transform: scale(0.94); }
+.bb-primary { background: var(--ios-blue); }
+.bb-success { background: var(--ios-green); }
+.bb-danger  { background: var(--ios-pink); }
+.bb-secondary { background: #242f47; border: 1px solid var(--border-color); }
+.bb-logout { background: rgba(255,69,58,0.12); border: 1px solid rgba(255,69,58,0.3); color: var(--ios-pink) !important; }
