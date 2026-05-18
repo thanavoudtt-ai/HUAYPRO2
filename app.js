@@ -2416,14 +2416,14 @@ function applyColorMode(mode) {
         document.body.style.background = '#f0f4f8';
         _applyInputColors('#e8edf2', '#0f172a', '#c5cdd6');
     } else if(mode === 'dark') {
-        root.style.setProperty('--bg-main',    '#0b0f19');
-        root.style.setProperty('--bg-card',    '#131926');
-        root.style.setProperty('--border-color','#1e293b');
-        root.style.setProperty('--text-main',  '#ffffff');
-        root.style.setProperty('--text-muted', '#8e8e93');
-        root.style.setProperty('--chip-bg',    '#1c2333');  // ✅ chip มืดเดิม
-        document.body.style.background = '#0b0f19';
-        _applyInputColors('#1c2333', '#ffffff', '#1e293b');
+        root.style.setProperty('--bg-main',    '#1a0806');
+        root.style.setProperty('--bg-card',    '#2d1108');
+        root.style.setProperty('--border-color','#5a2210');
+        root.style.setProperty('--text-main',  '#f5e6c8');
+        root.style.setProperty('--text-muted', '#c4883a');
+        root.style.setProperty('--chip-bg',    '#3a1508');
+        document.body.style.background = '#1a0806';
+        _applyInputColors('#3a1508', '#f5e6c8', '#5a2210');
     } else {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         applyColorMode(prefersDark ? 'dark' : 'light');
