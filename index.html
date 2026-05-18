@@ -76,8 +76,16 @@
 
                 <!-- Admin Login -->
                 <div id="adminLoginSection" class="hidden" style="width:100%;">
-                    <div style="position:relative; margin-bottom:8px;">
+                    <!-- Username -->
+                    <div style="position:relative; margin-bottom:14px;">
                         <div style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:16px; opacity:0.6;">👑</div>
+                        <input type="text" id="adminUsername" placeholder="Username Super Admin"
+                            style="padding-left:44px; font-size:15px; font-weight:600; height:52px; border-radius:14px;"
+                            onkeydown="if(event.key==='Enter') document.getElementById('adminPassword').focus()">
+                    </div>
+                    <!-- Password -->
+                    <div style="position:relative; margin-bottom:8px;">
+                        <div style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:16px; opacity:0.6;">🔒</div>
                         <input type="password" id="adminPassword" placeholder="รหัสผ่าน Super Admin"
                             style="padding-left:44px; font-size:15px; font-weight:600; height:52px; border-radius:14px;"
                             onkeydown="if(event.key==='Enter') handleLogin()">
@@ -118,9 +126,9 @@
                             <div class="menu-icon">👥</div>
                             <div class="menu-title">พนักงาน</div>
                         </div>
-                        <div class="menu-item" onclick="goToAdminPage('salesReportPage')">
-                            <div class="menu-icon">💰</div>
-                            <div class="menu-title">ยอดขาย</div>
+                        <div class="menu-item" onclick="goToAdminPage('staffSalesPage')">
+                            <div class="menu-icon">📋</div>
+                            <div class="menu-title">ยอดขายพนักงาน</div>
                         </div>
                         <div class="menu-item" onclick="goToAdminPage('timeLimitPage')">
                             <div class="menu-icon">⏰</div>
@@ -130,9 +138,9 @@
                             <div class="menu-icon">🔍</div>
                             <div class="menu-title">ตรวจหวย</div>
                         </div>
-                        <div class="menu-item" onclick="goToAdminPage('payoutPage')">
+                        <div class="menu-item" onclick="goToAdminPage('settingsPage')">
                             <div class="menu-icon">⚙️</div>
-                            <div class="menu-title">อัตราจ่าย</div>
+                            <div class="menu-title">ตั้งค่า</div>
                         </div>
                     </div>
                 </div>
@@ -152,6 +160,115 @@
                 <div class="bottom-bar">
                     <button class="bb-btn bb-secondary" onclick="backToAdminMenu()">⬅️ กลับ</button>
                     <button class="bb-btn bb-primary" onclick="openAddStaffModal()">➕ เพิ่มพนักงาน</button>
+                </div>
+            </div>
+
+            <!-- 👥 เมนูย่อย ยอดขายพนักงาน -->
+            <div id="staffSalesPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1; justify-content:center;">
+                    <div class="menu-grid">
+                        <div class="menu-item" onclick="goToSubSales('totalSalesPage')">
+                            <div class="menu-icon">📊</div>
+                            <div class="menu-title">ยอดขายทั้งหมด</div>
+                        </div>
+                        <div class="menu-item" onclick="goToSubSales('winnerStatPage')">
+                            <div class="menu-icon">🏆</div>
+                            <div class="menu-title">ยอดคนถูกหวย</div>
+                        </div>
+                        <div class="menu-item" onclick="goToSubSales('staffBreakdownPage')">
+                            <div class="menu-icon">👥</div>
+                            <div class="menu-title">แยกรายพนักงาน</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bottom-bar">
+                    <button class="bb-btn bb-secondary" onclick="backToAdminMenu()">⬅️ กลับหน้าเมนูหลัก</button>
+                </div>
+            </div>
+
+            <!-- 📊 ยอดขายทั้งหมด -->
+            <div id="totalSalesPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1;">
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-label">ยอดขายวันนี้</div><div class="stat-value" id="rptToday">0 ₭</div></div>
+                        <div class="stat-card"><div class="stat-label">ยอดขายเมื่อวาน</div><div class="stat-value" style="color:var(--text-muted);" id="rptYesterday">0 ₭</div></div>
+                    </div>
+                    <div class="stats-grid" style="margin-top:10px;">
+                        <div class="stat-card"><div class="stat-label">ยอดขายอาทิตย์นี้</div><div class="stat-value" style="color:var(--ios-blue);" id="rptWeek">0 ₭</div></div>
+                        <div class="stat-card"><div class="stat-label">ยอดขายเดือนนี้</div><div class="stat-value" style="color:var(--ios-blue);" id="rptMonth">0 ₭</div></div>
+                    </div>
+                    <div class="stats-grid" style="margin-top:10px;">
+                        <div class="stat-card"><div class="stat-label">ยอดขายปีนี้</div><div class="stat-value" style="color:var(--ios-blue);" id="rptYear">0 ₭</div></div>
+                        <div class="stat-card"><div class="stat-label">บิลทั้งหมด</div><div class="stat-value" style="color:var(--text-muted);" id="rptBills">0 บิล</div></div>
+                    </div>
+                </div>
+                <div class="bottom-bar">
+                    <button class="bb-btn bb-secondary" onclick="goToAdminPage('staffSalesPage')">⬅️ กลับ</button>
+                </div>
+            </div>
+
+            <!-- 🏆 ยอดคนถูกหวย -->
+            <div id="winnerStatPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1;">
+                    <div class="card" style="border:1px solid rgba(48,209,88,0.3);">
+                        <h3 style="font-size:14px; font-weight:700; margin-bottom:12px; color:var(--ios-green);">🏆 สถิติคนถูกหวย</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card"><div class="stat-label">วันนี้</div><div class="stat-value" id="winToday">0 คน</div></div>
+                            <div class="stat-card"><div class="stat-label">เมื่อวาน</div><div class="stat-value" style="color:var(--text-muted);" id="winYesterday">0 คน</div></div>
+                        </div>
+                        <div class="stats-grid" style="margin-top:10px;">
+                            <div class="stat-card"><div class="stat-label">อาทิตย์นี้</div><div class="stat-value" style="color:var(--ios-blue);" id="winWeek">0 คน</div></div>
+                            <div class="stat-card"><div class="stat-label">เดือนนี้</div><div class="stat-value" style="color:var(--ios-blue);" id="winMonth">0 คน</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bottom-bar">
+                    <button class="bb-btn bb-secondary" onclick="goToAdminPage('staffSalesPage')">⬅️ กลับ</button>
+                </div>
+            </div>
+
+            <!-- 👥 ยอดขายแยกรายพนักงาน -->
+            <div id="staffBreakdownPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1;">
+                    <!-- Date picker -->
+                    <div class="card" style="margin-bottom:12px; padding:12px;">
+                        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:8px;">📅 เลือกวันที่ต้องการดู</div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="date" id="staffBreakdownDate"
+                                style="flex:1; padding:10px; font-size:14px; font-weight:700; color:var(--ios-green); border-radius:10px;">
+                            <button onclick="loadStaffBreakdown()"
+                                style="background:var(--ios-blue); color:#fff; border:none; border-radius:10px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">
+                                🔍 ดูยอด
+                            </button>
+                        </div>
+                        <!-- Shortcut buttons -->
+                        <div style="display:flex; gap:8px; margin-top:8px;">
+                            <button onclick="setStaffBreakdownDate(0)"
+                                style="flex:1; background:rgba(48,209,88,0.15); color:var(--ios-green); border:1px solid rgba(48,209,88,0.3); border-radius:8px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                วันนี้
+                            </button>
+                            <button onclick="setStaffBreakdownDate(-1)"
+                                style="flex:1; background:rgba(10,132,255,0.1); color:var(--ios-blue); border:1px solid rgba(10,132,255,0.3); border-radius:8px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                เมื่อวาน
+                            </button>
+                            <button onclick="setStaffBreakdownDate(-7)"
+                                style="flex:1; background:#1c2333; color:var(--text-muted); border:1px solid var(--border-color); border-radius:8px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                7 วันก่อน
+                            </button>
+                            <button onclick="clearStaffBreakdownDate()"
+                                style="flex:1; background:#1c2333; color:var(--text-muted); border:1px solid var(--border-color); border-radius:8px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                ทั้งหมด
+                            </button>
+                        </div>
+                    </div>
+                    <!-- ผลลัพธ์ -->
+                    <div class="card" style="padding:12px;">
+                        <div id="staffBreakdownLabel" style="font-size:12px; font-weight:700; color:var(--ios-blue); margin-bottom:12px;">📋 ยอดขายแยกรายพนักงาน (ทั้งหมด)</div>
+                        <div id="staffSalesContainer"></div>
+                    </div>
+                </div>
+                <div class="bottom-bar">
+                    <button class="bb-btn bb-secondary" onclick="goToAdminPage('staffSalesPage')">⬅️ กลับ</button>
                 </div>
             </div>
 
@@ -192,19 +309,101 @@
             </div>
 
             <!-- ⏰ หน้าปรับเวลา -->
-            <div id="payoutPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+            <!-- ⚙️ หน้าตั้งค่า -->
+            <!-- ⚙️ หน้าตั้งค่า — เมนูย่อย -->
+            <div id="settingsPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1; justify-content:center;">
+                    <div class="menu-grid">
+                        <div class="menu-item" onclick="goToSubSetting('payoutSettingPage')">
+                            <div class="menu-icon">💰</div>
+                            <div class="menu-title">อัตราจ่ายรางวัล</div>
+                        </div>
+                        <div class="menu-item" onclick="goToSubSetting('changePassPage')">
+                            <div class="menu-icon">🔐</div>
+                            <div class="menu-title">เปลี่ยนรหัสผ่าน</div>
+                        </div>
+                        <div class="menu-item" onclick="goToSubSetting('colorModePage')">
+                            <div class="menu-icon">🎨</div>
+                            <div class="menu-title">โหมดสี</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bottom-bar">
+                    <button class="bb-btn bb-secondary" onclick="backToAdminMenu()">⬅️ กลับหน้าเมนูหลัก</button>
+                </div>
+            </div>
+
+            <!-- 💰 อัตราจ่ายรางวัล -->
+            <div id="payoutSettingPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
                 <div class="app-container" style="flex:1;">
                     <div class="card">
-                        <h2 style="font-size:16px; font-weight:800; margin-bottom:4px; color:var(--ios-blue);">⚙️ ตั้งค่าอัตราจ่ายรางวัล</h2>
-                        <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">จำนวนเงินที่จ่ายต่อทุก 1,000 ₭ ที่ซื้อ</p>
+                        <h2 style="font-size:15px; font-weight:800; margin-bottom:4px; color:var(--ios-blue);">💰 อัตราจ่ายรางวัล</h2>
+                        <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">จ่ายต่อทุก 1,000 ₭ ที่ซื้อ</p>
                         <div id="payoutSettingsContainer"></div>
                     </div>
                 </div>
                 <div class="bottom-bar">
-                    <button class="bb-btn bb-secondary" onclick="backToAdminMenu()" style="flex:0.7;">⬅️ กลับ</button>
-                    <button class="bb-btn bb-success" onclick="savePayoutSettings()">💾 บันทึกอัตราจ่าย</button>
+                    <button class="bb-btn bb-secondary" onclick="goToAdminPage('settingsPage')" style="flex:0.7;">⬅️ กลับ</button>
+                    <button class="bb-btn bb-success" onclick="savePayoutSettings()">💾 บันทึก</button>
                 </div>
             </div>
+
+            <!-- 🔐 เปลี่ยนรหัสผ่าน -->
+            <div id="changePassPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1;">
+                    <div class="card">
+                        <h2 style="font-size:15px; font-weight:800; margin-bottom:16px; color:var(--ios-pink);">🔐 เปลี่ยนรหัสผ่าน Super Admin</h2>
+                        <div class="input-group">
+                            <label>รหัสผ่านปัจจุบัน</label>
+                            <input type="password" id="oldAdminPass" placeholder="••••••••" style="font-size:16px; text-align:center; font-weight:bold;">
+                        </div>
+                        <div class="input-group">
+                            <label>รหัสผ่านใหม่</label>
+                            <input type="password" id="newAdminPass" placeholder="••••••••" style="font-size:16px; text-align:center; font-weight:bold;">
+                        </div>
+                        <div class="input-group">
+                            <label>ยืนยันรหัสผ่านใหม่</label>
+                            <input type="password" id="confirmAdminPass" placeholder="••••••••" style="font-size:16px; text-align:center; font-weight:bold;">
+                        </div>
+                    </div>
+                </div>
+                <div class="bottom-bar">
+                    <button class="bb-btn bb-secondary" onclick="goToAdminPage('settingsPage')" style="flex:0.7;">⬅️ กลับ</button>
+                    <button class="bb-btn bb-danger" onclick="changeAdminPassword()">🔐 เปลี่ยนรหัสผ่าน</button>
+                </div>
+            </div>
+
+            <!-- 🎨 โหมดสี -->
+            <div id="colorModePage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1; justify-content:center;">
+                    <div class="card">
+                        <h2 style="font-size:15px; font-weight:800; margin-bottom:6px; color:var(--ios-green);">🎨 โหมดสีของแอป</h2>
+                        <p style="font-size:11px; color:var(--text-muted); margin-bottom:16px;">Auto = กลางวันสว่าง / กลางคืนมืด</p>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div id="modeLight" onclick="setAppColorMode('light')"
+                                style="border:2px solid var(--border-color); border-radius:14px; padding:16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all 0.2s;">
+                                <div style="font-size:30px;">☀️</div>
+                                <div><div style="font-size:15px; font-weight:700;">Light Mode</div><div style="font-size:12px; color:var(--text-muted);">พื้นหลังสว่าง ตัวอักษรดำ</div></div>
+                            </div>
+                            <div id="modeDark" onclick="setAppColorMode('dark')"
+                                style="border:2px solid var(--ios-blue); border-radius:14px; padding:16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all 0.2s; background:rgba(10,132,255,0.08);">
+                                <div style="font-size:30px;">🌙</div>
+                                <div><div style="font-size:15px; font-weight:700; color:var(--ios-blue);">Dark Mode</div><div style="font-size:12px; color:var(--text-muted);">พื้นหลังมืด ตัวอักษรขาว</div></div>
+                            </div>
+                            <div id="modeAuto" onclick="setAppColorMode('auto')"
+                                style="border:2px solid var(--border-color); border-radius:14px; padding:16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all 0.2s;">
+                                <div style="font-size:30px;">🔄</div>
+                                <div><div style="font-size:15px; font-weight:700;">Auto Mode</div><div style="font-size:12px; color:var(--text-muted);">ตามการตั้งค่ามือถือ</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bottom-bar">
+                    <button class="bb-btn bb-secondary" onclick="goToAdminPage('settingsPage')">⬅️ กลับหน้าตั้งค่า</button>
+                </div>
+            </div>
+
+            <div id="payoutPage" style="display:none;" class="hidden"></div>
 
             <!-- ⏰ หน้าปรับเวลา -->
             <div id="timeLimitPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">

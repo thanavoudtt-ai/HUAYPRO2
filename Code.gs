@@ -54,14 +54,26 @@ function doPost(e) {
         if (!adminSheet) return createResponse({ success: false, message: "❌ ไม่พบหน้าแผ่นงาน Super Admin" });
         
         const adminData = adminSheet.getDataRange().getDisplayValues();
+        const inputUser = data.username ? data.username.toString().trim().toLowerCase() : "";
         const inputPass = data.password ? data.password.toString().trim() : "";
         
-        for (let i = 1; i < adminData.length; i++) {
-          if (adminData[i][0] && adminData[i][0].toString().trim() === inputPass) {
-            return createResponse({ success: true, role: "superadmin", username: "ผู้ดูแลระบบสูงสุด" });
+        for (let i = 0; i < adminData.length; i++) {
+          const rowUser = adminData[i][0] ? adminData[i][0].toString().trim().toLowerCase() : "";
+          const rowPass = adminData[i][1] ? adminData[i][1].toString().trim() : adminData[i][0].toString().trim();
+          // ถ้า Sheet มีแค่ 1 คอลัมน์ (password เดิม) ให้ตรวจแค่ password
+          const hasUsername = adminData[i].length > 1 && adminData[i][1];
+          if (hasUsername) {
+            if (rowUser === inputUser && rowPass === inputPass) {
+              return createResponse({ success: true, role: "superadmin", username: "ผู้ดูแลระบบสูงสุด", name: "ผู้ดูแลระบบสูงสุด" });
+            }
+          } else {
+            // backward compat: ถ้า Sheet มีแค่คอลัมน์เดียว ตรวจแค่ password
+            if (rowUser === inputPass) {
+              return createResponse({ success: true, role: "superadmin", username: "ผู้ดูแลระบบสูงสุด", name: "ผู้ดูแลระบบสูงสุด" });
+            }
           }
         }
-        return createResponse({ success: false, message: "❌ รหัสผ่านผู้ดูแลระบบสูงสุดไม่ถูกต้อง!" });
+        return createResponse({ success: false, message: "❌ Username หรือรหัสผ่านไม่ถูกต้อง!" });
       } 
       
       // ล็อกอินในโหมด พนักงานทั่วไป
@@ -181,6 +193,12 @@ function doPost(e) {
     // 16. ดึงเวลาปิดขายจาก Settings Sheet
     if (action === "getTimeLimits") {
       return createResponse(getTimeLimitsFromSheet());
+    }
+
+    // 17. เปลี่ยนรหัสผ่าน Super Admin
+    if (action === "changeAdminPassword") {
+      if (data.role !== "superadmin") return createResponse({ success: false, message: "❌ ไม่มีสิทธิ์" });
+      return createResponse(changeAdminPasswordData(data.oldPass, data.newPass));
     }
 
     return createResponse({ success: false, message: "ไม่พบ Action ที่ระบุ" });
@@ -735,4 +753,22 @@ function getTimeLimitsFromSheet() {
     }
     return { success: true, lao, thai };
   } catch(e) { return { success: true, lao: "20:15", thai: "15:15" }; }
+}
+
+// 🔐 เปลี่ยนรหัสผ่าน Super Admin
+function changeAdminPasswordData(oldPass, newPass) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_SUPER_ADMIN);
+    if (!sheet) return { success: false, message: "❌ ไม่พบ Sheet Super Admin" };
+    const data = sheet.getDataRange().getValues();
+    // row 1 = header, row 2 = รหัสผ่าน
+    for (let i = 0; i < data.length; i++) {
+      if (data[i][0] && data[i][0].toString().trim() === oldPass.toString().trim()) {
+        sheet.getRange(i + 1, 1).setValue(newPass.toString().trim());
+        return { success: true, message: "✅ เปลี่ยนรหัสผ่านสำเร็จแล้ว!" };
+      }
+    }
+    return { success: false, message: "❌ รหัสผ่านปัจจุบันไม่ถูกต้อง" };
+  } catch(e) { return { success: false, message: e.toString() }; }
 }

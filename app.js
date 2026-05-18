@@ -67,17 +67,17 @@ function handleLogin() {
     const userSelect = document.getElementById('loginUser'); // ตอนนี้เป็นช่องพิมพ์แล้ว
     const pinInput = document.getElementById('loginPin');
     const adminPassInput = document.getElementById('adminPassword');
+    const adminUserInput = document.getElementById('adminUsername');
 
     let payload = { action: "login" };
 
     if (isAdminLoginMode) {
-        // 👑 โหมดแอดมินสูงสุด
+        const username = adminUserInput ? adminUserInput.value.trim() : "";
         const password = adminPassInput ? adminPassInput.value.trim() : "";
-        if(!password) { 
-            alert("⚠️ กรุณากรอกรหัสผ่านผู้ดูแลระบบสูงสุด"); 
-            return; 
-        }
-        payload.role = "superadmin";
+        if(!username) { showStatusModal("⚠️ แจ้งเตือน", "กรุณากรอก Username Super Admin", false); return; }
+        if(!password) { showStatusModal("⚠️ แจ้งเตือน", "กรุณากรอกรหัสผ่าน Super Admin", false); return; }
+        payload.role     = "superadmin";
+        payload.username = username;
         payload.password = password;
     } else {
         // 👤 โหมดพนักงานทั่วไป
@@ -224,7 +224,7 @@ function toggleLoginMode() {
         if(labelLeft)   labelLeft.style.color = 'var(--text-muted)';
         if(labelRight)  { labelRight.innerText = 'Admin'; labelRight.style.color = 'var(--ios-pink)'; }
         if(avatar)      avatar.style.borderColor = 'var(--ios-pink)';
-        setTimeout(() => { const ap = document.getElementById('adminPassword'); if(ap) ap.focus(); }, 100);
+        setTimeout(() => { const ap = document.getElementById('adminUsername'); if(ap) ap.focus(); }, 100);
     } else {
         staffSection.classList.remove('hidden');
         adminSection.classList.add('hidden');
@@ -1308,10 +1308,10 @@ function showStatusModal(title, message, isSuccess, callback) {
     document.getElementById('statusIcon').innerText = isSuccess ? "💎" : "💥"; 
     statusModalCallback = callback; 
     document.getElementById('statusModal').style.display = 'flex';
-    if(isSuccess && callback) {
-        // success + มี callback → ปิดเองและเรียก callback ใน 1.2 วินาที
+    if(isSuccess) {
+        // success ทุกกรณี → ปิดเองใน 1.2 วินาที แล้วเรียก callback (ถ้ามี)
         statusModalTimer = setTimeout(function() { closeStatusModal(); }, 1200);
-    } else if(!isSuccess) { 
+    } else { 
         statusModalTimer = setTimeout(function() { closeStatusModal(); }, 2500); 
     } 
 }
@@ -1328,11 +1328,101 @@ function closeStatusModal() {
 function hideAllPages() { 
     ['menuPage','recorderWrapper','dashboardPage','adminSettingsPage',
      'superAdminMenuPage','staffPage','salesReportPage','timeLimitPage','checkWinPage',
-     'billHistoryPage','checkWinStaffPage','payoutPage'
+     'billHistoryPage','checkWinStaffPage','payoutPage','settingsPage',
+     'payoutSettingPage','changePassPage','colorModePage',
+     'staffSalesPage','totalSalesPage','winnerStatPage','staffBreakdownPage'
     ].forEach(id => {
         const el = document.getElementById(id);
         if(el) { el.classList.add('hidden'); el.style.display = 'none'; }
     });
+}
+
+function goToSubSales(pageId) {
+    hideAllPages();
+    showPage(pageId);
+    if(pageId === 'totalSalesPage' || pageId === 'winnerStatPage') loadAdminSalesReport();
+    if(pageId === 'staffBreakdownPage') {
+        // ตั้งวันที่เป็นวันนี้อัตโนมัติ
+        const now = new Date();
+        const dateEl = document.getElementById('staffBreakdownDate');
+        if(dateEl && !dateEl.value) {
+            dateEl.value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+        }
+        loadStaffBreakdown();
+    }
+}
+
+function setStaffBreakdownDate(offsetDays) {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    const val = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+    document.getElementById('staffBreakdownDate').value = val;
+    loadStaffBreakdown();
+}
+
+function clearStaffBreakdownDate() {
+    document.getElementById('staffBreakdownDate').value = '';
+    loadStaffBreakdown();
+}
+
+function loadStaffBreakdown() {
+    const dateEl = document.getElementById('staffBreakdownDate');
+    const selectedDate = dateEl ? dateEl.value : '';
+    const container = document.getElementById('staffSalesContainer');
+    const label = document.getElementById('staffBreakdownLabel');
+    if(container) container.innerHTML = `<div style="text-align:center; padding:16px; color:var(--text-muted);">⏳ กำลังโหลด...</div>`;
+
+    fetch(BACKEND_API_URL, {
+        method:"POST", mode:"cors",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({ action:"loadDashboard", username: currentUser.username, role: currentUser.role })
+    })
+    .then(res => res.json()).then(data => {
+        if(!data.success) return;
+
+        // กรองตามวันที่ถ้าเลือก
+        let filterDate = '';
+        if(selectedDate) {
+            const parts = selectedDate.split('-');
+            filterDate = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parseInt(parts[0])}`;
+            if(label) label.innerText = `📋 ยอดขายแยกรายพนักงาน — วันที่ ${filterDate}`;
+        } else {
+            if(label) label.innerText = '📋 ยอดขายแยกรายพนักงาน (ทั้งหมด)';
+        }
+
+        // คำนวณยอดแยกพนักงาน
+        const staffMap = {};
+        (data.rawData || []).forEach(row => {
+            if(row.status === 'ยกเลิก') return;
+            if(filterDate && row.date !== filterDate) return;
+            const u = row.username || 'ไม่ระบุ';
+            if(!staffMap[u]) staffMap[u] = 0;
+            staffMap[u] += row.price;
+        });
+
+        if(Object.keys(staffMap).length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">📭 ไม่มีข้อมูลยอดขาย</div>`;
+            return;
+        }
+
+        container.innerHTML = Object.entries(staffMap)
+            .sort((a,b) => b[1]-a[1])
+            .map(([name, amt]) => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-color);">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:36px; height:36px; border-radius:50%; background:rgba(10,132,255,0.15); display:flex; align-items:center; justify-content:center; font-size:16px;">👤</div>
+                        <span style="font-weight:700; font-size:15px;">${name}</span>
+                    </div>
+                    <span style="color:var(--ios-green); font-weight:800; font-size:15px;">${amt.toLocaleString()} ₭</span>
+                </div>`).join('');
+    }).catch(err => console.error(err));
+}
+
+function goToSubSetting(pageId) {
+    hideAllPages();
+    showPage(pageId);
+    if(pageId === 'payoutSettingPage') loadPayoutSettings();
+    if(pageId === 'colorModePage') initColorModeUI();
 }
 
 // helper แสดง page แบบ flex
@@ -1366,7 +1456,7 @@ function goToAdminPage(pageId) {
     if(pageId === 'salesReportPage') loadAdminSalesReport();
     if(pageId === 'staffPage') loadStaffList();
     if(pageId === 'timeLimitPage') loadTimeLimits();
-    if(pageId === 'payoutPage') loadPayoutSettings();
+    if(pageId === 'settingsPage') { /* แค่แสดงเมนูย่อย */ }
 }
 
 function backToAdminMenu() {
@@ -1972,4 +2062,115 @@ function renderSalesChart(rawData) {
             ctx.fillText(kval, x + barW/2, y - 4);
         }
     });
+}
+
+// ========== 🎨 COLOR MODE ==========
+let _currentColorMode = localStorage.getItem('appColorMode') || 'dark';
+
+function initColorModeUI() {
+    ['light','dark','auto'].forEach(mode => {
+        const el = document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1));
+        if(!el) return;
+        const isActive = _currentColorMode === mode;
+        el.style.border = isActive ? '2px solid var(--ios-blue)' : '2px solid var(--border-color)';
+        el.style.background = isActive ? 'rgba(10,132,255,0.1)' : 'transparent';
+        el.querySelector('div:last-child').style.color = isActive ? 'var(--ios-blue)' : 'var(--text-main)';
+    });
+}
+
+function setAppColorMode(mode) {
+    _currentColorMode = mode;
+    localStorage.setItem('appColorMode', mode);
+    applyColorMode(mode);
+    initColorModeUI();
+    showStatusModal('✅ บันทึกแล้ว', `เปลี่ยนเป็นโหมด ${mode === 'light' ? 'สว่าง ☀️' : mode === 'dark' ? 'มืด 🌙' : 'Auto 🔄'} แล้ว`, true);
+}
+
+function applyColorMode(mode) {
+    const root = document.documentElement;
+    if(mode === 'light') {
+        root.style.setProperty('--bg-main',    '#f0f4f8');
+        root.style.setProperty('--bg-card',    '#ffffff');
+        root.style.setProperty('--border-color','#d1d9e0');
+        root.style.setProperty('--text-main',  '#0f172a');
+        root.style.setProperty('--text-muted', '#64748b');
+        document.body.style.background = '#f0f4f8';
+        // input สว่าง
+        document.documentElement.style.setProperty('--input-bg', '#e8edf2');
+        document.documentElement.style.setProperty('--input-color', '#0f172a');
+        _applyInputColors('#e8edf2', '#0f172a', '#c5cdd6');
+    } else if(mode === 'dark') {
+        root.style.setProperty('--bg-main',    '#0b0f19');
+        root.style.setProperty('--bg-card',    '#131926');
+        root.style.setProperty('--border-color','#1e293b');
+        root.style.setProperty('--text-main',  '#ffffff');
+        root.style.setProperty('--text-muted', '#8e8e93');
+        document.body.style.background = '#0b0f19';
+        // input มืด
+        _applyInputColors('#1c2333', '#ffffff', '#1e293b');
+    } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyColorMode(prefersDark ? 'dark' : 'light');
+    }
+}
+
+function _applyInputColors(bg, color, border) {
+    const style = document.getElementById('_dynamicInputStyle') || (() => {
+        const s = document.createElement('style');
+        s.id = '_dynamicInputStyle';
+        document.head.appendChild(s);
+        return s;
+    })();
+    style.textContent = `
+        input, select, textarea {
+            background: ${bg} !important;
+            color: ${color} !important;
+            border-color: ${border} !important;
+        }
+        input::placeholder { color: ${color}88 !important; }
+        select option { background: ${bg}; color: ${color}; }
+    `;
+}
+
+// Auto mode listener
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if(_currentColorMode === 'auto') applyColorMode('auto');
+});
+
+// Apply on load
+applyColorMode(_currentColorMode);
+
+// ========== 🔐 CHANGE ADMIN PASSWORD ==========
+function changeAdminPassword() {
+    const oldPass    = document.getElementById('oldAdminPass').value.trim();
+    const newPass    = document.getElementById('newAdminPass').value.trim();
+    const confirmPass = document.getElementById('confirmAdminPass').value.trim();
+
+    if(!oldPass || !newPass || !confirmPass) {
+        showStatusModal('⚠️ แจ้งเตือน', 'กรุณากรอกรหัสผ่านให้ครบทุกช่อง', false);
+        return;
+    }
+    if(newPass !== confirmPass) {
+        showStatusModal('❌ ผิดพลาด', 'รหัสผ่านใหม่ไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง', false);
+        return;
+    }
+    if(newPass.length < 6) {
+        showStatusModal('❌ ผิดพลาด', 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร', false);
+        return;
+    }
+    showLoading(true);
+    fetch(BACKEND_API_URL, {
+        method: 'POST', mode: 'cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'changeAdminPassword', oldPass, newPass, role: currentUser.role })
+    })
+    .then(res => res.json()).then(data => {
+        showLoading(false);
+        showStatusModal(data.success ? '✅ สำเร็จ' : '❌ ล้มเหลว', data.message, data.success);
+        if(data.success) {
+            document.getElementById('oldAdminPass').value = '';
+            document.getElementById('newAdminPass').value = '';
+            document.getElementById('confirmAdminPass').value = '';
+        }
+    }).catch(err => { showLoading(false); showStatusModal('❌ ล้มเหลว', err.toString(), false); });
 }
