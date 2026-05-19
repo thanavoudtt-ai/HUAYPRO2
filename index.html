@@ -117,7 +117,7 @@
             </div>
         </div>
 
-        <div id="mainApp" style="display:none; flex:1; flex-direction:column; overflow:hidden; min-height:0;">
+        <div id="mainApp" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
 
             <div class="navbar-top" style="flex-shrink:0; z-index:10;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -618,7 +618,7 @@
 
             <!-- Recorder Wrapper -->
             <div id="recorderWrapper" style="display:none; flex-direction:column; flex:1; overflow:hidden; height:100%;" class="hidden">
-            <div id="recorderPage" class="app-container" style="flex:1; overflow-y:auto; padding-bottom:0;">
+            <div id="recorderPage" class="app-container" style="flex:1; overflow-y:auto;">
                 <div class="card">
                     <div class="segmented-control">
                         <button id="typeLao" class="segment-btn active" onclick="setHuayType('ລາວ')">ຫວຍລາວ</button>
@@ -746,9 +746,8 @@
                     <button class="btn btn-success" onclick="submitSaveTimeLimits()" style="margin-top:14px;">💾 ບັນທຶກເວລາຄວບຄຸມ</button>
                 </div>
             </div>
-            <!-- Global Bottom Navigation — อยู่นอก mainApp เพื่อติดขอบล่างจอ -->
-        </div><!-- end mainApp -->
-        <div id="globalBottomNav" class="bottom-nav" style="display:none;">
+            <!-- Global Bottom Navigation -->
+            <div id="globalBottomNav" class="bottom-nav" style="display:none;">
                 <!-- Staff Nav -->
                 <div id="staffNav" style="display:flex; flex:1;">
                     <button class="nav-tab active" id="navTab_recorder" onclick="switchNavTab('recorder')">
@@ -813,6 +812,7 @@
                     </button>
                 </div>
             </div>
+        </div>
 
     <div id="lotteryInputModal" class="modal-backdrop" style="display: none;">
         <div class="card" style="width: 100%; max-width: 360px; background: #131926; border: 2px solid #1e293b; border-radius: 20px; padding: 20px; animation: fadeIn 0.25s ease;">

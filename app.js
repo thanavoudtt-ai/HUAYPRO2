@@ -1832,18 +1832,16 @@ function showBottomNav(role) {
     nav.style.display = 'flex';
     document.getElementById('staffNav').style.display = role === 'staff' ? 'flex' : 'none';
     document.getElementById('adminNav').style.display  = role === 'superadmin' ? 'flex' : 'none';
-    // ✅ เพิ่ม padding ล่างให้ทุก app-container เพื่อไม่ให้ fixed nav บัง content
-    document.querySelectorAll('.app-container').forEach(el => {
-        el.style.paddingBottom = 'calc(64px + env(safe-area-inset-bottom, 0px))';
-    });
+    // ✅ ให้ mainApp มี padding-bottom เท่ากับความสูง nav bar เพื่อไม่ให้บัง content
+    const app = document.getElementById('mainApp');
+    if(app) app.style.paddingBottom = 'calc(56px + env(safe-area-inset-bottom, 0px))';
 }
 
 function hideBottomNav() {
     const nav = document.getElementById('globalBottomNav');
     if(nav) nav.style.display = 'none';
-    document.querySelectorAll('.app-container').forEach(el => {
-        el.style.paddingBottom = '';
-    });
+    const app = document.getElementById('mainApp');
+    if(app) app.style.paddingBottom = '0';
 }
 
 function setActiveNavTab(tabId) {
