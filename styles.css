@@ -139,14 +139,19 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 .bb-secondary { background: #3a1508; border: 1px solid var(--border-color); color: var(--text-main) !important; }
 .bb-logout { background: rgba(224,80,48,0.12); border: 1px solid rgba(224,80,48,0.3); color: var(--ios-pink) !important; }
 /* ========== 📱 BOTTOM NAVIGATION BAR ========== */
+/* ✅ position:fixed ติดขอบล่างจอ 100% เหมือน Facebook/Lazada */
 .bottom-nav {
-    flex-shrink: 0;
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
+    max-width: 480px;
     background: #1a0806;
     border-top: 1px solid #5a2210;
     display: flex;
     align-items: stretch;
-    /* ✅ ติดขอบล่างจอ รองรับ iPhone notch/home indicator */
+    z-index: 100;
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .nav-tab {
@@ -155,7 +160,6 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* ✅ ลด padding ให้บางเหมือน Facebook/Lazada */
     padding: 6px 4px 4px;
     cursor: pointer;
     border: none;
@@ -164,9 +168,7 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     transition: opacity 0.15s ease;
     gap: 2px;
     -webkit-tap-highlight-color: transparent;
-    /* ✅ ไม่ให้สูงเกินไป */
     min-height: 48px;
-    max-height: 56px;
 }
 .nav-tab:active { opacity: 0.6; }
 .nav-tab svg { width: 22px; height: 22px; }
@@ -188,3 +190,8 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 .nav-tab svg line,
 .nav-tab svg polyline,
 .nav-tab svg rect { stroke: #7a4030; transition: stroke 0.15s ease; }
+
+/* ✅ ให้ content ไม่ถูก fixed nav บัง */
+.app-container {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+}
