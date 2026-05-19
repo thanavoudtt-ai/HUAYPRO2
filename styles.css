@@ -150,15 +150,10 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     display: flex;
     align-items: stretch;
     z-index: 100;
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
 }
 .bottom-nav::after {
-    content: '';
-    display: block;
-    height: env(safe-area-inset-bottom, 0px);
-    background: #1a0806;
-    position: absolute;
-    bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
-    left: 0; right: 0;
+    content: none;
 }
 .nav-tab {
     flex: 1;
