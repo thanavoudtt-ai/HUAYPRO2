@@ -1789,7 +1789,7 @@ function showMenu() {
     const nameEl = document.getElementById('userProfileName');
     const badgeEl = document.getElementById('userBadgeRole');
     if(nameEl) nameEl.innerText = currentUser.name || currentUser.username || 'ພະນັກງານขาย';
-    if(badgeEl) badgeEl.innerText = currentUser.role === 'superadmin' ? '👑 Super Admin' : '🧑‍💼 Staff Agent';
+    if(badgeEl) badgeEl.innerText = currentUser.role === 'superadmin' ? '👑 ຜູ້ດູແລລະບົບ' : '🧑‍💼 ພະນັກງານ';
 
     if(currentUser.role === 'superadmin') {
         showBottomNav('superadmin');
