@@ -57,7 +57,6 @@ body {
     display: flex;
     flex-direction: column;
     animation: fadeIn 0.3s ease-in-out;
-    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
 }
 .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 .hidden { display: none !important; }
@@ -139,21 +138,12 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 .bb-logout { background: rgba(224,80,48,0.12); border: 1px solid rgba(224,80,48,0.3); color: var(--ios-pink) !important; }
 /* ========== 📱 BOTTOM NAVIGATION BAR ========== */
 .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-width: 480px;
-    margin: 0 auto;
+    flex-shrink: 0;
+    width: 100%;
     background: #1a0806;
     border-top: 1px solid #5a2210;
     display: flex;
     align-items: stretch;
-    z-index: 100;
-    padding-bottom: max(env(safe-area-inset-bottom), 16px);
-}
-.bottom-nav::after {
-    content: none;
 }
 .nav-tab {
     flex: 1;
