@@ -8,25 +8,12 @@ let popupSelectedPosition = 'บน';
 let serverTimeLimits = { lao: "20:15", thai: "15:15" };
 let isAdminLoginMode = false;
 
-// ตัวแปรส่วนกลางสำหรับล็อกเป้าหมายไฮไลต์สีเขียวในบิลตรวจเช็คหวย
+// ตัวแปรส่วนกลางสำหรับล็อกเป้าหมายไฮไลต์สีเขียวในບິນตรวจเช็คหวย
 let highlightWinningNum = "";
 let highlightPositionFilter = "ทั้งหมด";
 
-// ตัวแปรสำหรับจำพิกัดช่องที่นิ้วพนักงานจิ้มล่าสุดใน Pop-up
+// ตัวแปรสำหรับจำพิกัดช่องที่นิ้วພະນັກງານจิ้มล่าสุดใน Pop-up
 let popupLastFocusedInput = null; 
-
-// ========== 📱 iOS PWA VIEWPORT FIX ==========
-// แก้ปัญหา height ไม่เต็มจอบน iOS PWA
-function fixIOSViewport() {
-    const wrapper = document.querySelector('.page-wrapper');
-    if(!wrapper) return;
-    const h = window.innerHeight;
-    wrapper.style.height = h + 'px';
-    wrapper.style.maxHeight = h + 'px';
-}
-fixIOSViewport();
-window.addEventListener('resize', fixIOSViewport);
-window.addEventListener('orientationchange', () => setTimeout(fixIOSViewport, 300));
 
 document.addEventListener("DOMContentLoaded", function() {
     const loginUser = document.getElementById('loginUser');
@@ -76,7 +63,7 @@ function injectMenuIcons() {
 }
 
 
-// ✨ ฟังก์ชันโหลดรายชื่อพนักงานเข้า Dropdown (เพิ่มเข้าระบบให้สมบูรณ์แล้ว)
+// ✨ ฟังก์ชันโหลดรายຊື່ພະນັກງານเข้า Dropdown (เพิ่มเข้าระบบให้สมบูรณ์แล้ว)
 function loadUsernames() {
     const select = document.getElementById('loginUser');
     if (!select) return;
@@ -94,18 +81,18 @@ function loadUsernames() {
         return res.json();
     })
     .then(data => {
-        select.innerHTML = `<option value="" disabled selected>👇 กรุณาเลือกชื่อบัญชีผู้ใช้งาน...</option>`;
+        select.innerHTML = `<option value="" disabled selected>👇 กรุณาเลือกชื่อບັນຊີผู้ใช้งาน...</option>`;
         if (data && data.users && data.users.length > 0) {
             data.users.forEach(u => { 
                 select.innerHTML += `<option value="${u}">${u}</option>`; 
             });
         } else {
-            select.innerHTML = `<option value="" disabled>❌ ไม่พบรายชื่อพนักงานในระบบ</option>`;
+            select.innerHTML = `<option value="" disabled>❌ ไม่พบรายຊື່ພະນັກງານในระบบ</option>`;
         }
     })
     .catch(err => {
         console.error("Fetch Error:", err);
-        select.innerHTML = `<option value="" disabled>💥 เชื่อมต่อไม่สำเร็จ (ลองรีเฟรชหน้าเว็บ)</option>`;
+        select.innerHTML = `<option value="" disabled>💥 เชื่อมต่อไม่ສຳເລັດ (ลองรีเฟรชหน้าเว็บ)</option>`;
     });
 }
 
@@ -117,7 +104,7 @@ let _loginLockTimer = null;
 function handleLogin() {
     // ตรวจสอบว่าถูก lock อยู่หรือไม่
     if(_loginLocked) {
-        showStatusModal("🔒 ระบบล็อกชั่วคราว", "กรอกรหัสผิดเกิน 5 ครั้ง\nกรุณารอ 5 นาที", false);
+        showStatusModal("🔒 ระบบล็อกชั่วคราว", "กรอกรหัสผิดเกิน 5 ຄັ້ງ\nกรุณารอ 5 ນາທີ", false);
         return;
     }
     const userSelect = document.getElementById('loginUser'); // ตอนนี้เป็นช่องพิมพ์แล้ว
@@ -136,12 +123,12 @@ function handleLogin() {
         payload.username = username;
         payload.password = password;
     } else {
-        // 👤 โหมดพนักงานทั่วไป
+        // 👤 โหมดພະນັກງານทั่วไป
         const username = userSelect ? userSelect.value.trim() : "";
         const pin = pinInput ? pinInput.value.trim() : "";
         
         if(!username) { 
-            alert("⚠️ กรุณาพิมพ์ชื่อบัญชีผู้ใช้งานพนักงานของคุณ"); 
+            alert("⚠️ กรุณาพิมพ์ชื่อບັນຊີผู้ใช้งานພະນັກງານของคุณ"); 
             return; 
         }
         if(!pin) { 
@@ -187,16 +174,16 @@ function handleLogin() {
             _loginAttempts++;
             if(_loginAttempts >= 5) {
                 _loginLocked = true;
-                showStatusModal("🔒 ระบบล็อก", `กรอกรหัสผิด 5 ครั้ง\nกรุณารอ 5 นาที`, false);
+                showStatusModal("🔒 ระบบล็อก", `กรอกรหัสผิด 5 ຄັ້ງ\nกรุณารอ 5 ນາທີ`, false);
                 if(_loginLockTimer) clearTimeout(_loginLockTimer);
                 _loginLockTimer = setTimeout(() => {
                     _loginLocked = false;
                     _loginAttempts = 0;
-                    showStatusModal("🔓 ปลดล็อกแล้ว", "สามารถเข้าสู่ระบบได้อีกครั้ง", true);
+                    showStatusModal("🔓 ปลดล็อกแล้ว", "สามารถເຂົ້າສູ່ລະບົບได้อีกຄັ້ງ", true);
                 }, 5 * 60 * 1000);
             } else {
                 const remain = 5 - _loginAttempts;
-                showStatusModal("❌ เข้าสู่ระบบไม่สำเร็จ", `ชื่อหรือรหัส PIN ไม่ถูกต้อง\nเหลืออีก ${remain} ครั้ง`, false);
+                showStatusModal("❌ ເຂົ້າສູ່ລະບົບไม่ສຳເລັດ", `ຊື່ຫຼືລະຫັດ PIN ບໍ່ຖືກຕ້ອງ\nເຫຼືອອີກ ${remain} ຄັ້ງ`, false);
             }
         }
     })
@@ -284,7 +271,7 @@ function showSessionLockedModal(message) {
     modal.innerHTML = `
         <div style="background:var(--bg-card); border:2px solid var(--ios-pink); border-radius:20px; padding:28px 24px; width:100%; max-width:320px; text-align:center;">
             <div style="font-size:52px; margin-bottom:12px;">🔒</div>
-            <div style="font-size:17px; font-weight:900; color:var(--ios-pink); margin-bottom:10px;">กำลังใช้งานอยู่</div>
+            <div style="font-size:17px; font-weight:900; color:var(--ios-pink); margin-bottom:10px;">ກຳລັງໃຊ້ງານຢູ່</div>
             <div style="font-size:13px; color:var(--text-muted); line-height:1.7; margin-bottom:20px; white-space:pre-line;">${message.replace(/⚠️/g,'').trim()}</div>
             <button onclick="document.getElementById('sessionLockedModal').remove()"
                 style="width:100%; background:var(--ios-pink); color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:700; cursor:pointer;">
@@ -318,7 +305,7 @@ function toggleLoginMode() {
     } else {
         staffSection.classList.remove('hidden');
         adminSection.classList.add('hidden');
-        if(subtitle)    subtitle.innerText = "เข้าสู่ระบบพนักงาน";
+        if(subtitle)    subtitle.innerText = "ເຂົ້າສູ່ລະບົບພະນັກງານ";
         if(thumb)       thumb.style.transform = 'translateX(0)';
         if(track)       track.style.background = 'var(--ios-blue)';
         if(labelLeft)   labelLeft.style.color = 'var(--text-muted)';
@@ -336,7 +323,7 @@ function showLoading(status) {
         loading = document.createElement('div');
         loading.id = 'loadingOverlay';
         loading.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:9999;';
-        loading.innerHTML = '<div style="color:#fff;font-size:18px;font-weight:bold;text-align:center;"><div style="font-size:40px;margin-bottom:10px;">⏳</div>กำลังประมวลผล...</div>';
+        loading.innerHTML = '<div style="color:#fff;font-size:18px;font-weight:bold;text-align:center;"><div style="font-size:40px;margin-bottom:10px;">⏳</div>ກຳລັງປະມວນຜົນ...</div>';
         document.body.appendChild(loading);
     }
     loading.style.display = status ? 'flex' : 'none';
@@ -345,39 +332,39 @@ function showLoading(status) {
 function initRecorderPage() {
     hideAllPages();
     showPage('recorderWrapper');
-    document.getElementById('recorderTitle') && (document.getElementById('recorderTitle').innerText = `📝 ลงบิลแทงหวย`);
+    document.getElementById('recorderTitle') && (document.getElementById('recorderTitle').innerText = `📝 ลงບິນแทงหวย`);
     currentBillItems = [];
     renderBillTable();
     generateBillId();
 }
 
-// 🗑️ ล้างรายการทั้งหมดในบิล
+// 🗑️ ล้างລາຍການทั้งหมดในບິນ
 function clearAllBillItems() {
     if(currentBillItems.length === 0) return;
-    if(!confirm(`⚠️ ล้างรายการทั้งหมด ${currentBillItems.length} รายการ?\nไม่สามารถกู้คืนได้`)) return;
+    if(!confirm(`⚠️ ล้างລາຍການทั้งหมด ${currentBillItems.length} ລາຍການ?\nไม่สามารถกู้คืนได้`)) return;
     currentBillItems = [];
     renderBillTable();
 }
 
-// 🧾 ประวัติบิลพนักงาน
+// 🧾 ປະຫວັດບິນພະນັກງານ
 let _allBillHistory = [];
 
 function loadBillHistory() {
     const list = document.getElementById('billHistoryList');
-    list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">⏳ กำลังโหลด...</div>`;
+    list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">⏳ ກຳລັງໂຫລດ...</div>`;
     fetch(BACKEND_API_URL, {
         method:"POST", mode:"cors",
         headers:{"Content-Type":"text/plain;charset=utf-8"},
         body: JSON.stringify({ action:"loadDashboard", username: currentUser.username, role: currentUser.role })
     })
     .then(res => res.json()).then(data => {
-        if(!data.success) { list.innerHTML = `<p style="color:red;text-align:center;">โหลดไม่สำเร็จ</p>`; return; }
+        if(!data.success) { list.innerHTML = `<p style="color:red;text-align:center;">โหลดไม่ສຳເລັດ</p>`; return; }
         const billMap = {};
         (data.rawData || []).forEach(row => {
             if(!billMap[row.billId]) billMap[row.billId] = { billId: row.billId, date: row.date, status: row.status, items: [], total: 0 };
             billMap[row.billId].items.push(row);
-            if(row.status !== 'ยกเลิก') billMap[row.billId].total += row.price;
-            if(row.status === 'ยกเลิก') billMap[row.billId].status = 'ยกเลิก';
+            if(row.status !== 'ຍົກເລີກ') billMap[row.billId].total += row.price;
+            if(row.status === 'ຍົກເລີກ') billMap[row.billId].status = 'ຍົກເລີກ';
         });
         _allBillHistory = Object.values(billMap);
         renderBillHistory(_allBillHistory);
@@ -386,30 +373,30 @@ function loadBillHistory() {
 
 function renderBillHistory(bills) {
     const list = document.getElementById('billHistoryList');
-    if(!bills.length) { list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">📭 ไม่มีประวัติบิล</div>`; return; }
+    if(!bills.length) { list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">📭 ไม่มีປະຫວັດບິນ</div>`; return; }
     list.innerHTML = bills.map(b => {
-        const isCanceled = b.status === 'ยกเลิก';
+        const isCanceled = b.status === 'ຍົກເລີກ';
         const color = isCanceled ? 'var(--ios-pink)' : 'var(--ios-blue)';
         return `
         <div style="padding:12px; border-bottom:1px solid var(--border-color);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <div>
                     <div style="font-size:12px; font-weight:800; color:var(--ios-blue);">${b.billId}</div>
-                    <div style="font-size:11px; color:var(--text-muted);">📅 ${b.date} | ${b.items.length} รายการ</div>
+                    <div style="font-size:11px; color:var(--text-muted);">📅 ${b.date} | ${b.items.length} ລາຍການ</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:13px; font-weight:800; color:${color};">${b.total.toLocaleString()} ₭</div>
-                    <div style="font-size:10px; color:${color};">${isCanceled ? '❌ ยกเลิก' : '✅ ปกติ'}</div>
+                    <div style="font-size:10px; color:${color};">${isCanceled ? '❌ ຍົກເລີກ' : '✅ ปกติ'}</div>
                 </div>
             </div>
             <div style="display:flex; gap:8px;">
                 <button onclick="openBillSlipFromHistory('${b.billId}')"
                     style="flex:1; background:var(--ios-blue); color:#1a0806; border:none; border-radius:10px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
-                    🧾 ดูใบบิน
+                    🧾 ເບິ່ງໃບບິນ
                 </button>
                 ${!isCanceled ? `<button onclick="confirmCancelBill('${b.billId}')"
                     style="flex:1; background:rgba(224,80,48,0.15); color:var(--ios-pink); border:1px solid rgba(224,80,48,0.3); border-radius:10px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
-                    🔥 ยกเลิกบิล
+                    🔥 ຍົກເລີກບິນ
                 </button>` : ''}
             </div>
         </div>`;
@@ -432,18 +419,18 @@ function confirmCancelBill(billId) {
     modal.innerHTML = `
         <div style="background:var(--bg-card); border:2px solid var(--ios-pink); border-radius:20px; padding:24px; width:100%; max-width:300px; text-align:center;">
             <div style="font-size:40px; margin-bottom:10px;">⚠️</div>
-            <div style="font-size:15px; font-weight:800; color:var(--ios-pink); margin-bottom:8px;">ยืนยันยกเลิกบิล</div>
+            <div style="font-size:15px; font-weight:800; color:var(--ios-pink); margin-bottom:8px;">ຢືນຢັນຍົກເລີກບິນ</div>
             <div style="font-size:12px; color:var(--text-muted); margin-bottom:20px; line-height:1.6;">
-                บิล <strong style="color:var(--text-main);">${billId}</strong><br>จะถูกยกเลิก ยอดขายจะถูกตัดออกทันที
+                ບິນ <strong style="color:var(--text-main);">${billId}</strong><br>ຈະຖືກຍົກເລີກ ຍອດຂາຍຈະຖືກຕັດອອກທັນທີ
             </div>
             <div style="display:flex; gap:10px;">
                 <button onclick="this.closest('.modal-backdrop').remove()"
                     style="flex:1; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:12px; padding:12px; font-size:13px; font-weight:700; cursor:pointer;">
-                    ยกเลิก
+                    ຍົກເລີກ
                 </button>
                 <button onclick="this.closest('.modal-backdrop').remove(); executeCancelBill('${billId}')"
                     style="flex:1; background:var(--ios-pink); color:#fff; border:none; border-radius:12px; padding:12px; font-size:13px; font-weight:700; cursor:pointer;">
-                    ยืนยัน
+                    ຢືນຢັນ
                 </button>
             </div>
         </div>`;
@@ -456,9 +443,9 @@ function filterBillHistory() {
     renderBillHistory(_allBillHistory.filter(b => b.billId.toLowerCase().includes(q) || b.date.includes(q)));
 }
 
-// ปุ่ม "บันทึกยอดและออกบิล" — HTML เรียกตัวนี้
+// ปุ่ม "บันทึกยอดและออกບິນ" — HTML เรียกตัวนี้
 function processSubmitFinalSale() {
-    // เช็คเวลาอีกครั้งก่อนบันทึก
+    // เช็คเวลาอีกຄັ້ງก่อนบันทึก
     if(isTimeLimitExceeded(currentHuayType)) {
         showTimeLimitPopup(currentHuayType);
         return;
@@ -476,7 +463,7 @@ function setHuayType(type) {
 // เมื่อพิมพ์เลข — ล้างช่องเงินให้พิมพ์ใหม่
 function handleNumChange() {
     const num = document.getElementById('huayNum').value;
-    // ถ้าเลข 3 ตัว แสดงป้ายบอก
+    // ถ้าเลข 3 ຕົວ แสดงป้ายบอก
 }
 
 // กดชิป 1K 5K 10K 20K 50K — บวกเพิ่มในช่องเงิน
@@ -486,13 +473,13 @@ function addMainQuickAmt(amt) {
     input.value = cur + amt;
 }
 
-// ปุ่ม "เพิ่มรายการลงบิล"
+// ปุ่ม "ເພີ່ມລາຍການລົງບິນ"
 function addItemsToCurrentBillDirect() {
     const num = document.getElementById('huayNum').value.trim();
     const amt = parseFloat(document.getElementById('huayAmt').value) || 0;
 
     if(!num) { alert("⚠️ กรุณากรอกตัวเลขหวย"); return; }
-    if(num.length < 2 || num.length > 3) { alert("⚠️ กรอกเลข 2 หรือ 3 ตัวเท่านั้น"); return; }
+    if(num.length < 2 || num.length > 3) { alert("⚠️ กรอกเลข 2 หรือ 3 ຕົວเท่านั้น"); return; }
 
     // ✅ เช็คเวลาจาก server ก่อนขาย
     if(isTimeLimitExceeded(currentHuayType)) {
@@ -520,7 +507,7 @@ function addItemsToCurrentBillDirect() {
     document.getElementById('huayNum').focus();
 }
 
-// 🎯 Popup สำหรับหวยไทย 2 ตัว
+// 🎯 Popup สำหรับหวยไทย 2 ຕົວ
 function openThaiTwoDigitPopup(num) {
     // ลบ popup เก่าถ้ามี
     const old = document.getElementById('thai2PopupModal');
@@ -534,7 +521,7 @@ function openThaiTwoDigitPopup(num) {
         <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:20px; padding:20px; width:100%; max-width:340px;">
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
-                <span style="font-size:16px; font-weight:700; color:#fff;">🎯 หวยไทย 2 ตัว: <strong style="color:var(--ios-blue); font-size:20px;">${num}</strong></span>
+                <span style="font-size:16px; font-weight:700; color:#fff;">🎯 หวยไทย 2 ຕົວ: <strong style="color:var(--ios-blue); font-size:20px;">${num}</strong></span>
                 <button onclick="closeThaiTwoPopup()" style="background:rgba(255,69,58,0.2); color:var(--ios-pink); border:none; border-radius:8px; padding:4px 10px; font-size:13px; cursor:pointer;">✕</button>
             </div>
 
@@ -578,7 +565,7 @@ function openThaiTwoDigitPopup(num) {
 
             <button onclick="confirmThai2Add('${num}')" 
                 style="width:100%; background:var(--ios-green); color:#fff; border:none; border-radius:12px; padding:14px; font-size:16px; font-weight:700; cursor:pointer;">
-                ➕ เพิ่มรายการลงบิล
+                ➕ ເພີ່ມລາຍການລົງບິນ
             </button>
         </div>`;
     document.body.appendChild(modal);
@@ -699,7 +686,7 @@ function addNumRow(num, b, l, t) {
     
     // หาเป้าหมายวันที่ส่งเลข
     const targetDateStr = document.getElementById('billTargetDate').value;
-    if(!targetDateStr) { alert("กรุณาเลือกวันที่ก่อนเพิ่มรายการ"); return; }
+    if(!targetDateStr) { alert("กรุณาเลือกวันที่ก่อนเพิ่มລາຍການ"); return; }
     
     const parts = targetDateStr.split("-");
     const formattedDate = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parseInt(parts[0])}`;
@@ -755,7 +742,7 @@ function clearPopupInputs() {
 function openKeyboardPopup(pos) {
     popupSelectedPosition = pos;
     clearPopupInputs();
-    document.getElementById('popupPositionTitle').innerText = `ป้อนรายการตำแหน่ง: [${pos}]`;
+    document.getElementById('popupPositionTitle').innerText = `ป้อนລາຍການตำแหน่ง: [${pos}]`;
     document.getElementById('keyboardPopupModal').style.display = 'flex';
     document.getElementById('popNum').focus();
 }
@@ -793,7 +780,7 @@ function submitPopupRow() {
     const t = parseFloat(document.getElementById('popT').value) || 0;
     
     if(!num) { alert("กรุณาป้อนตัวเลขหวย"); return; }
-    if(num.length !== 2 && num.length !== 3) { alert("ป้อนได้เฉพาะเลข 2 ตัว หรือ 3 ตัว เท่านั้น"); return; }
+    if(num.length !== 2 && num.length !== 3) { alert("ป้อนได้เฉพาะเลข 2 ຕົວ หรือ 3 ຕົວ เท่านั้น"); return; }
     if(b===0 && l===0 && t===0) { alert("กรุณาใส่จำนวนเงินอย่างน้อย 1 ช่อง"); return; }
     
     addNumRow(num, b, l, t);
@@ -802,7 +789,7 @@ function submitPopupRow() {
 }
 
 function submitBillToServer() {
-    if(currentBillItems.length === 0) { showStatusModal("แจ้งเตือน", "ไม่มีรายการในบิล ไม่สามารถบันทึกได้", false); return; }
+    if(currentBillItems.length === 0) { showStatusModal("แจ้งเตือน", "ไม่มีລາຍການในບິນ ไม่สามารถบันทึกได้", false); return; }
 
     // สร้าง billId ใหม่ตอน submit ทันที ไม่อ่านจาก element
     const now = new Date();
@@ -839,7 +826,7 @@ function submitBillToServer() {
     .then(res => res.json()).then(data => {
         showLoading(false);
         if(data.success) {
-            showStatusModal("💎 สำเร็จ", data.message, true, function() {
+            showStatusModal("💎 ສຳເລັດ", data.message, true, function() {
                 showReceiptSlipDirect(billId, currentUser.username, formattedDate, items);
             });
         } else {
@@ -848,7 +835,7 @@ function submitBillToServer() {
     }).catch(err => { showLoading(false); showStatusModal("ระบบขัดข้อง", err.toString(), false); });
 }
 
-// แสดงใบบิน fixed — auto scale font ตามจำนวนรายการ ไม่ scroll เลย
+// แสดงใบบิน fixed — auto scale font ตามจำนวนລາຍການ ไม่ scroll เลย
 function showReceiptSlipDirect(billId, staffName, dateStr, items) {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
@@ -857,7 +844,7 @@ function showReceiptSlipDirect(billId, staffName, dateStr, items) {
     // ขนาดคงที่ 9:16 (540×960) ไม่ยืดหดตามเนื้อหา
     const W = 540, H = 960;
 
-    // 5 คอลัมน์ คอลัมน์ละ 10 รายการ (max 50 รายการ)
+    // 5 คอลัมน์ คอลัมน์ละ 10 ລາຍການ (max 50 ລາຍການ)
     const cols = [items.slice(0,10), items.slice(10,20), items.slice(20,30), items.slice(30,40), items.slice(40,50)];
 
     // font size คงที่ ไม่ขึ้นกับจำนวน เพราะ canvas size ล็อคแล้ว
@@ -896,16 +883,16 @@ function showReceiptSlipDirect(billId, staffName, dateStr, items) {
             <!-- Header -->
             <div style="text-align:center; padding-bottom:8px; margin-bottom:8px; border-bottom:2px dashed #cbd5e1; flex-shrink:0;">
                 <div style="font-size:22px; font-weight:900; color:#000; letter-spacing:2px;">HUAYPLUS</div>
-                <div style="font-size:11px; color:#64748b;">ใบบินขายหวยดิจิทัล</div>
+                <div style="font-size:11px; color:#64748b;">ໃບບິນຂາຍຫວຍດີຈີຕອນ</div>
             </div>
 
             <!-- Meta -->
             <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; margin-bottom:4px; flex-shrink:0;">
-                <span>วันที่: <strong>${dateStr}</strong></span>
-                <span>เวลา: <strong>${timeStr}</strong></span>
+                <span>ວັນທີ: <strong>${dateStr}</strong></span>
+                <span>ເວລາ: <strong>${timeStr}</strong></span>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; padding-bottom:6px; margin-bottom:8px; border-bottom:1px dashed #cbd5e1; flex-shrink:0;">
-                <span>พนักงาน: <strong>${staffName}</strong></span>
+                <span>ພະນັກງານ: <strong>${staffName}</strong></span>
                 <span style="color:#0a84ff; font-weight:700; font-size:10px;">${billId}</span>
             </div>
 
@@ -916,7 +903,7 @@ function showReceiptSlipDirect(billId, staffName, dateStr, items) {
 
             <!-- Footer ยอดรวม -->
             <div style="border-top:2px solid #000; border-bottom:2px solid #000; padding:8px 0; text-align:center; margin-top:8px; flex-shrink:0;">
-                <span style="font-size:13px; font-weight:700;">ยอดรวมเงินทั้งหมด: </span>
+                <span style="font-size:13px; font-weight:700;">ລວມຍອດເງິນທັງໝົດ: </span>
                 <strong style="font-size:20px; font-weight:900;">${total.toLocaleString()} ₭</strong>
             </div>
         </div>`;
@@ -930,11 +917,11 @@ function showReceiptSlipDirect(billId, staffName, dateStr, items) {
         modal.innerHTML = `
             <div id="receiptSlipContent" style="transform-origin:top center;"></div>
             <div id="receiptSlipImgWrap" style="display:none; flex-direction:column; align-items:center; gap:8px;">
-                <p style="color:#fff; font-size:12px; text-align:center; margin:0; opacity:0.8;">👆 กดค้างที่รูปเพื่อบันทึก / Copy</p>
+                <p style="color:#fff; font-size:12px; text-align:center; margin:0; opacity:0.8;">👆 ກົດຄ້າງທີ່ຮູບເພື່ອບັນທຶກ / Copy</p>
                 <img id="receiptSlipImg" style="max-width:300px; width:100%; border-radius:12px; display:block; -webkit-user-select:auto; user-select:auto;" draggable="true">
             </div>
             <button id="receiptRenderBtn" onclick="renderReceiptToImage()" style="background:#0a84ff;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:300px;">📸 แปลงเป็นรูปเพื่อบันทึก</button>
-            <button onclick="closeReceiptAndReset()" style="background:#ff453a;color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:300px;">❌ ปิดและขายต่อ</button>`;
+            <button onclick="closeReceiptAndReset()" style="background:#ff453a;color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:300px;">❌ ປິດແລະຂາຍຕໍ່</button>`;
         document.body.appendChild(modal);
     }
     // ---- off-screen render: วาง HTML นอกจอ render แล้วค่อยเปิด modal ----
@@ -1011,7 +998,7 @@ function renderReceiptToImage() {
             spinner = document.createElement('div');
             spinner.className = 'slip-spinner';
             spinner.style.cssText = 'color:#fff;font-size:13px;opacity:0.7;padding:20px 0;';
-            spinner.innerText = '⏳ กำลังสร้างรูปใบบิน...';
+            spinner.innerText = '⏳ ກຳລັງສ້າງຮູບໃບບິນ...';
             wrap.insertBefore(spinner, img);
         }
         spinner.style.display = 'block';
@@ -1033,7 +1020,7 @@ function renderReceiptToImage() {
         const content = document.getElementById('receiptSlipContent');
         if(content) content.style.display = 'block';
         if(wrap) wrap.style.display = 'none';
-        alert('แปลงรูปไม่สำเร็จ กรุณาลองใหม่');
+        alert('แปลงรูปไม่ສຳເລັດ กรุณาລອງໃໝ່');
     });
 }
 
@@ -1081,7 +1068,7 @@ function openReceiptSlip(billId) {
         
         document.getElementById('slipTotalAmt').innerText = total.toLocaleString() + " ₭";
         document.getElementById('receiptSlipModal').style.display = 'flex';
-    }).catch(err => { showLoading(false); alert("ไม่สามารถดึงใบบิลพิมพ์ได้: " + err.toString()); });
+    }).catch(err => { showLoading(false); alert("ไม่สามารถดึงใบບິນพิมพ์ได้: " + err.toString()); });
 }
 
 function closeSlipModal() {
@@ -1108,7 +1095,7 @@ function loadDashboardData() {
         
         let todaySales = 0, yesterdaySales = 0, monthSales = 0, weekSales = 0;
         (data.rawData || []).forEach(row => {
-            if(row.status === 'ยกเลิก') return;
+            if(row.status === 'ຍົກເລີກ') return;
             const parts = row.date.split('/');
             if(parts.length === 3) {
                 const rowDate = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
@@ -1133,7 +1120,7 @@ function loadDashboardData() {
         // วาดกราฟ 7 วันย้อนหลัง
         renderSalesChart(data.rawData || []);
 
-        // Super admin: แสดงยอดแยกพนักงาน + หน้าตั้งค่าอัตราจ่าย
+        // Super admin: แสดงยอดแยกພະນັກງານ + หน้าตั้งค่าອັດຕາຈ່າຍ
         if(currentUser.role === 'superadmin') {
             const sec = document.getElementById('superAdminStaffSection');
             const container = document.getElementById('staffTotalListContainer');
@@ -1141,7 +1128,7 @@ function loadDashboardData() {
             if(sec) sec.classList.remove('hidden');
             if(rateCard) rateCard.classList.remove('hidden');
             if(container) {
-                container.innerHTML = `<div style="font-size:15px; font-weight:bold; color:var(--ios-green);">💰 ยอดขายรวม: ${data.totalSales.toLocaleString()} ₭ | บิลปกติ: ${data.activeBills} | ยกเลิก: ${data.canceledBills}</div>`;
+                container.innerHTML = `<div style="font-size:15px; font-weight:bold; color:var(--ios-green);">💰 ยอดขายรวม: ${data.totalSales.toLocaleString()} ₭ | ບິນปกติ: ${data.activeBills} | ຍົກເລີກ: ${data.canceledBills}</div>`;
             }
         }
     }).catch(err => { console.error(err); });
@@ -1154,7 +1141,7 @@ function viewSpecificBill(billId) {
 
 function triggerBillSearch() {
     const billId = document.getElementById('searchBillInput').value.trim();
-    if(!billId) { alert("กรุณาใส่เลขบิลที่ต้องค้นหา"); return; }
+    if(!billId) { alert("กรุณาใส่เลขບິນที่ต้องค้นหา"); return; }
     
     showLoading(true);
     fetch(BACKEND_API_URL, {
@@ -1185,17 +1172,17 @@ function triggerBillSearch() {
             `;
         });
         
-        const isCanceled = data.status === "ยกเลิก";
+        const isCanceled = data.status === "ຍົກເລີກ";
         const actionBtnHtml = isCanceled ? 
-            `<button class="btn btn-secondary" style="width:100%; margin-top:15px;" disabled>❌ บิลนี้ถูกยกเลิกแล้ว</button>` :
-            `<button class="btn btn-danger" style="width:100%; margin-top:15px; font-weight:bold;" onclick="executeCancelBill('${data.billId}')">🔥 สั่งยกเลิกบิลใบนี้ (คืนเงิน)</button>`;
+            `<button class="btn btn-secondary" style="width:100%; margin-top:15px;" disabled>❌ ບິນนี้ถูกຍົກເລີກแล้ว</button>` :
+            `<button class="btn btn-danger" style="width:100%; margin-top:15px; font-weight:bold;" onclick="executeCancelBill('${data.billId}')">🔥 สั่งຍົກເລີກບິນใบนี้ (คืนเงิน)</button>`;
             
         resultDiv.innerHTML = `
             <div class="card" style="border:2px solid var(--border-color); padding:16px;">
-                <h3 style="font-size:16px; border-bottom:2px solid var(--ios-blue); padding-bottom:6px; margin-bottom:10px;">🧾 ข้อมูลรหัสบิล: ${data.billId}</h3>
-                <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">👤 พนักงานผู้ขาย: ${data.username} | 📅 วันที่หวยออก: ${data.items[0].date}</p>
+                <h3 style="font-size:16px; border-bottom:2px solid var(--ios-blue); padding-bottom:6px; margin-bottom:10px;">🧾 ข้อมูลรหัสບິນ: ${data.billId}</h3>
+                <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">👤 ພະນັກງານผู้ขาย: ${data.username} | 📅 วันที่หวยออก: ${data.items[0].date}</p>
                 ${itemsHtml}
-                <div style="text-align:right; margin-top:12px; font-size:15px; font-weight:bold; color:var(--ios-green);">ยอดสุทธิในบิล: ${total.toLocaleString()} ₭</div>
+                <div style="text-align:right; margin-top:12px; font-size:15px; font-weight:bold; color:var(--ios-green);">ยอดสุทธิในບິນ: ${total.toLocaleString()} ₭</div>
                 ${actionBtnHtml}
             </div>
         `;
@@ -1213,12 +1200,12 @@ function executeCancelBill(billId) {
     .then(res => res.json()).then(data => {
         showLoading(false);
         if(data.success) {
-            showStatusModal("สำเร็จ", data.message, true, function() {
+            showStatusModal("ສຳເລັດ", data.message, true, function() {
                 loadBillHistory(); // reload list ใน billHistoryPage
                 loadDashboardData();
             });
         } else {
-            showStatusModal("ไม่สำเร็จ", data.message, false);
+            showStatusModal("ไม่ສຳເລັດ", data.message, false);
         }
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
@@ -1228,7 +1215,7 @@ function runWinnerCheck() {
     const posFilter = document.getElementById('searchPosition').value;          // ✅ ID จริงใน HTML
     const targetDateStr = document.getElementById('searchDate').value;          // ✅ ID จริงใน HTML
     
-    if(!winNum || !targetDateStr) { alert("กรุณาใส่เลขรางวัลและเลือกวันที่ต้องการตรวจบิลผู้โชคดี"); return; }
+    if(!winNum || !targetDateStr) { alert("กรุณาใส่เลขรางวัลและเลือกวันที่ต้องการตรวจບິນผู้โชคดี"); return; }
     
     const parts = targetDateStr.split("-");
     const formattedDate = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parseInt(parts[0])}`;
@@ -1256,7 +1243,7 @@ function runWinnerCheck() {
         div.innerHTML = "";
         
         if(!data.success || data.data.length === 0) {
-            div.innerHTML = `<div class="card" style="text-align:center; padding:20px; color:var(--text-muted);">📭 ไม่พบรายการถูกรางวัลตามเงื่อนไขที่ระบุ</div>`;
+            div.innerHTML = `<div class="card" style="text-align:center; padding:20px; color:var(--text-muted);">📭 ไม่พบລາຍການถูกรางวัลตามเงื่อนไขที่ระบุ</div>`;
             return;
         }
 
@@ -1301,19 +1288,19 @@ function runWinnerCheck() {
                         </div>
                         <button onclick="openWinnerSlip('${bill.billId}')"
                             style="background:var(--ios-blue); color:#fff; border:none; border-radius:10px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer;">
-                            🧾 ดูใบบิน
+                            🧾 ເບິ່ງໃບບິນ
                         </button>
                     </div>
                     ${itemsHtml}
                     <div style="text-align:right; padding-top:8px; border-top:1px dashed var(--border-color); margin-top:4px; font-size:14px; font-weight:800; color:var(--ios-green);">
-                        รวมรางวัลบิลนี้: ${bill.totalWin.toLocaleString()} ₭
+                        ລວມລາງວັນບິນນີ້: ${bill.totalWin.toLocaleString()} ₭
                     </div>
                 </div>`;
         });
 
         html += `
             <div style="padding:12px 16px; background:rgba(48,209,88,0.2); border-radius:12px; text-align:center; font-weight:900; color:var(--ios-green); font-size:18px; border:2px solid rgba(48,209,88,0.5);">
-                💰 รวมยอดรางวัลทั้งหมด: ${grandTotal.toLocaleString()} ₭
+                💰 ລວມຍອດລາງວັນທັງໝົດ: ${grandTotal.toLocaleString()} ₭
             </div>`;
 
         // ปุ่มบันทึกผลรางวัล (เฉพาะ superadmin)
@@ -1322,7 +1309,7 @@ function runWinnerCheck() {
             html += `
             <button onclick="saveWinResultToHistory('${winNum}','${posFilter}','${formattedDate}',${totalBills},${grandTotal})"
                 style="width:100%; background:#15803d; color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px;">
-                ✅ บันทึกผลรางวัลวันนี้ลงประวัติ
+                ✅ ບັນທຶກຜົນລາງວັນລົງປະຫວັດ
             </button>`; 
         }
 
@@ -1359,7 +1346,7 @@ function openWinnerSlip(billId) {
         const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
         const timeStr = now.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
 
-        // แบ่ง items เป็น 3 คอลัมน์ คอลัมน์ละ 15 รายการ
+        // แบ่ง items เป็น 3 คอลัมน์ คอลัมน์ละ 15 ລາຍການ
         const col1 = data.items.slice(0, 10);
         const col2 = data.items.slice(10, 20);
         const col3 = data.items.slice(20, 30);
@@ -1409,16 +1396,16 @@ function openWinnerSlip(billId) {
                 <!-- Header -->
                 <div style="text-align:center; padding-bottom:8px; margin-bottom:8px; border-bottom:2px dashed #cbd5e1; flex-shrink:0;">
                     <div style="font-size:22px; font-weight:900; color:#000; letter-spacing:2px;">HUAYPLUS</div>
-                    <div style="font-size:11px; color:#64748b;">ใบบินขายหวยดิจิทัล</div>
+                    <div style="font-size:11px; color:#64748b;">ໃບບິນຂາຍຫວຍດີຈີຕອນ</div>
                 </div>
 
                 <!-- Meta -->
                 <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; margin-bottom:4px; flex-shrink:0;">
-                    <span>วันที่: <strong>${dateStr}</strong></span>
-                    <span>เวลา: <strong>${timeStr}</strong></span>
+                    <span>ວັນທີ: <strong>${dateStr}</strong></span>
+                    <span>ເວລາ: <strong>${timeStr}</strong></span>
                 </div>
                 <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; padding-bottom:6px; margin-bottom:8px; border-bottom:1px dashed #cbd5e1; flex-shrink:0;">
-                    <span>พนักงาน: <strong>${data.username}</strong></span>
+                    <span>ພະນັກງານ: <strong>${data.username}</strong></span>
                     <span style="color:#0a84ff; font-weight:700; font-size:10px;">${data.billId}</span>
                 </div>
 
@@ -1429,12 +1416,12 @@ function openWinnerSlip(billId) {
 
                 <!-- Footer -->
                 <div style="border-top:2px solid #000; border-bottom:2px solid #000; padding:6px 0; text-align:center; margin-top:8px; flex-shrink:0;">
-                    <span style="font-size:13px; font-weight:700;">ยอดรวมเงินทั้งหมด: </span>
+                    <span style="font-size:13px; font-weight:700;">ລວມຍອດເງິນທັງໝົດ: </span>
                     <strong style="font-size:20px; font-weight:900;">${total.toLocaleString()} ₭</strong>
                 </div>
                 ${winTotal > 0 ? `
                 <div style="background:#dcfce7;border:2px solid #16a34a;border-radius:8px;padding:6px 8px;text-align:center;margin-top:6px;flex-shrink:0;">
-                    <div style="font-size:11px;color:#15803d;font-weight:700;">🏆 ยอดรางวัลที่ถูก</div>
+                    <div style="font-size:11px;color:#15803d;font-weight:700;">🏆 ຍອດລາງວັນທີ່ຖືກ</div>
                     <div style="font-size:18px;font-weight:900;color:#15803d;">${winTotal.toLocaleString()} ₭</div>
                 </div>` : ''}
             </div>`;
@@ -1448,11 +1435,11 @@ function openWinnerSlip(billId) {
             modal.innerHTML = `
                 <div id="winnerSlipContent" style="transform-origin:top center;"></div>
                 <div id="winnerSlipImgWrap" style="display:none; flex-direction:column; align-items:center; gap:8px;">
-                    <p style="color:#fff; font-size:12px; text-align:center; margin:0; opacity:0.8;">👆 กดค้างที่รูปเพื่อบันทึก / Copy</p>
+                    <p style="color:#fff; font-size:12px; text-align:center; margin:0; opacity:0.8;">👆 ກົດຄ້າງທີ່ຮູບເພື່ອບັນທຶກ / Copy</p>
                     <img id="winnerSlipImg" style="max-width:300px; width:100%; border-radius:12px; display:block; -webkit-user-select:auto; user-select:auto;" draggable="true">
                 </div>
                 <button id="winnerRenderBtn" onclick="renderWinnerToImage()" style="background:#0a84ff;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:300px;">📸 แปลงเป็นรูปเพื่อบันทึก</button>
-                <button onclick="document.getElementById('winnerSlipModal').style.display='none'" style="background:#ff453a;color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:300px;">❌ ปิดหน้าต่าง</button>`;
+                <button onclick="document.getElementById('winnerSlipModal').style.display='none'" style="background:#ff453a;color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:300px;">❌ ປິດໜ້າຕ່າງ</button>`;
             document.body.appendChild(modal);
         }
         // ---- off-screen render ----
@@ -1518,7 +1505,7 @@ function renderWinnerToImage() {
             spinner = document.createElement('div');
             spinner.className = 'slip-spinner';
             spinner.style.cssText = 'color:#fff;font-size:13px;opacity:0.7;padding:20px 0;';
-            spinner.innerText = '⏳ กำลังสร้างรูปใบบิน...';
+            spinner.innerText = '⏳ ກຳລັງສ້າງຮູບໃບບິນ...';
             wrap.insertBefore(spinner, img);
         }
         spinner.style.display = 'block';
@@ -1538,7 +1525,7 @@ function renderWinnerToImage() {
         const content = document.getElementById('winnerSlipContent');
         if(content) content.style.display = 'block';
         if(wrap) wrap.style.display = 'none';
-        alert('แปลงรูปไม่สำเร็จ กรุณาลองใหม่');
+        alert('แปลงรูปไม่ສຳເລັດ กรุณาລອງໃໝ່');
     });
 }
 
@@ -1596,6 +1583,7 @@ function filterTamra() {
 function logout() {
     _sessionToken = null;
     if(_heartbeatInterval) clearInterval(_heartbeatInterval);
+    hideBottomNav();
     currentUser = {};
     if(_clockInterval) clearInterval(_clockInterval);
     if(_sessionTimer) clearTimeout(_sessionTimer);
@@ -1615,10 +1603,10 @@ function showStatusModal(title, message, isSuccess, callback) {
     if(statusModalTimer) clearTimeout(statusModalTimer);
 
     // ใช้แค่ title สั้นๆ — ไม่แสดง message ยาว
-    const shortTitle = isSuccess ? 'สำเร็จ' :
-        (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('หมดเวลา') || title.includes('ใกล้') || title.includes('ล็อก') || title.includes('ปลดล็อก'))
+    const shortTitle = isSuccess ? 'ສຳເລັດ' :
+        (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('ໝົດເວລາ') || title.includes('ใกล้') || title.includes('ล็อก') || title.includes('ปลดล็อก'))
             ? title.replace(/[💎💥⚠️🔒🔓✅❌]/g,'').trim()
-            : 'ไม่สำเร็จ';
+            : 'ไม่ສຳເລັດ';
 
     document.getElementById('statusTitle').innerText = shortTitle;
     statusModalCallback = callback;
@@ -1655,7 +1643,7 @@ function showStatusModal(title, message, isSuccess, callback) {
     }
 
     const titleEl = document.getElementById('statusTitle');
-    const isWarn = !isSuccess && (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('หมดเวลา') || title.includes('ใกล้') || title.includes('ล็อก') || title.includes('ปลดล็อก'));
+    const isWarn = !isSuccess && (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('ໝົດເວລາ') || title.includes('ใกล้') || title.includes('ล็อก') || title.includes('ปลดล็อก'));
 
     if(isSuccess) {
         resetAndAnimate(svgSuccess);
@@ -1728,7 +1716,7 @@ function loadStaffBreakdown() {
     const selectedDate = dateEl ? dateEl.value : '';
     const container = document.getElementById('staffSalesContainer');
     const label = document.getElementById('staffBreakdownLabel');
-    if(container) container.innerHTML = `<div style="text-align:center; padding:16px; color:var(--text-muted);">⏳ กำลังโหลด...</div>`;
+    if(container) container.innerHTML = `<div style="text-align:center; padding:16px; color:var(--text-muted);">⏳ ກຳລັງໂຫລດ...</div>`;
 
     fetch(BACKEND_API_URL, {
         method:"POST", mode:"cors",
@@ -1743,15 +1731,15 @@ function loadStaffBreakdown() {
         if(selectedDate) {
             const parts = selectedDate.split('-');
             filterDate = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parseInt(parts[0])}`;
-            if(label) label.innerText = `📋 ยอดขายแยกรายพนักงาน — วันที่ ${filterDate}`;
+            if(label) label.innerText = `📋 ยอดขายแยกรายພະນັກງານ — วันที่ ${filterDate}`;
         } else {
-            if(label) label.innerText = '📋 ยอดขายแยกรายพนักงาน (ทั้งหมด)';
+            if(label) label.innerText = '📋 ยอดขายแยกรายພະນັກງານ (ทั้งหมด)';
         }
 
-        // คำนวณยอดแยกพนักงาน
+        // คำนวณยอดแยกພະນັກງານ
         const staffMap = {};
         (data.rawData || []).forEach(row => {
-            if(row.status === 'ยกเลิก') return;
+            if(row.status === 'ຍົກເລີກ') return;
             if(filterDate && row.date !== filterDate) return;
             const u = row.username || 'ไม่ระบุ';
             if(!staffMap[u]) staffMap[u] = 0;
@@ -1800,14 +1788,16 @@ function showMenu() {
     if(mainApp) mainApp.style.display = 'flex';
     const nameEl = document.getElementById('userProfileName');
     const badgeEl = document.getElementById('userBadgeRole');
-    if(nameEl) nameEl.innerText = currentUser.name || currentUser.username || 'พนักงานขาย';
+    if(nameEl) nameEl.innerText = currentUser.name || currentUser.username || 'ພະນັກງານขาย';
     if(badgeEl) badgeEl.innerText = currentUser.role === 'superadmin' ? '👑 Super Admin' : '🧑‍💼 Staff Agent';
+
     if(currentUser.role === 'superadmin') {
-        showPage('superAdminMenuPage');
-    } else { 
-        showPage('menuPage');
+        showBottomNav('superadmin');
+        switchAdminTab('staff');
+    } else {
+        showBottomNav('staff');
+        switchNavTab('recorder');
     }
-    setTimeout(injectMenuIcons, 50);
 }
 
 function goToAdminPage(pageId) {
@@ -1832,6 +1822,52 @@ function backToAdminMenu() {
     showPage('superAdminMenuPage');
 }
 
+// ========== 📱 BOTTOM NAVIGATION ==========
+const STAFF_NAV_PAGES  = ['recorderWrapper','dashboardPage','checkWinStaffPage','billHistoryPage'];
+const ADMIN_NAV_PAGES  = ['staffPage','staffSalesPage','checkWinPage','settingsPage'];
+
+function showBottomNav(role) {
+    const nav = document.getElementById('globalBottomNav');
+    if(!nav) return;
+    nav.style.display = 'flex';
+    document.getElementById('staffNav').style.display = role === 'staff' ? 'flex' : 'none';
+    document.getElementById('adminNav').style.display  = role === 'superadmin' ? 'flex' : 'none';
+}
+
+function hideBottomNav() {
+    const nav = document.getElementById('globalBottomNav');
+    if(nav) nav.style.display = 'none';
+}
+
+function setActiveNavTab(tabId) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    const el = document.getElementById(tabId);
+    if(el) el.classList.add('active');
+}
+
+function switchNavTab(tab) {
+    hideAllPages();
+    if(tab === 'recorder')  { showPage('recorderWrapper'); setActiveNavTab('navTab_recorder'); initRecorderPage(); }
+    else if(tab === 'dashboard') { showPage('dashboardPage'); setActiveNavTab('navTab_dashboard'); loadDashboardData(); }
+    else if(tab === 'checkwin')  { showPage('checkWinStaffPage'); setActiveNavTab('navTab_checkwin');
+        const d = document.getElementById('searchDate');
+        if(d && !d.value) { const n=new Date(); d.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
+    }
+    else if(tab === 'history') { showPage('billHistoryPage'); setActiveNavTab('navTab_history'); loadBillHistory(); }
+    else if(tab === 'more') { showPage('menuPage'); setActiveNavTab('navTab_more'); }
+}
+
+function switchAdminTab(tab) {
+    hideAllPages();
+    if(tab === 'staff')    { showPage('staffPage'); setActiveNavTab('navTab_adminStaff'); loadStaffList(); }
+    else if(tab === 'sales')    { showPage('staffSalesPage'); setActiveNavTab('navTab_adminSales'); }
+    else if(tab === 'check')    { showPage('checkWinPage'); setActiveNavTab('navTab_adminCheck');
+        const d = document.getElementById('searchDate2');
+        if(d && !d.value) { const n=new Date(); d.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
+    }
+    else if(tab === 'settings') { showPage('settingsPage'); setActiveNavTab('navTab_adminSettings'); }
+}
+
 function goToColorMode() {
     hideAllPages();
     showPage('colorModePage');
@@ -1839,7 +1875,7 @@ function goToColorMode() {
 }
 
 function backFromColorMode() {
-    // กลับไปหน้าที่ถูกต้องตาม role
+    // ກັບไปหน้าที่ถูกต้องตาม role
     if(currentUser.role === 'superadmin') {
         goToAdminPage('settingsPage');
     } else {
@@ -1876,7 +1912,7 @@ function goToCheckWin() {
 
 function goToRecorder() { initRecorderPage(); }
 
-// ⚙️ โหลดอัตราจ่ายรางวัลจาก backend
+// ⚙️ โหลดອັດຕາຈ່າຍรางวัลจาก backend
 function loadPayoutSettings() {
     fetch(BACKEND_API_URL, {
         method: "POST", mode: "cors",
@@ -1895,8 +1931,8 @@ function renderPayoutSettings(settings) {
     if(!container) return;
 
     const labels = {
-        "2ตัว": "🎯 เลข 2 ตัว  (บน/ล่าง/รวม) — จ่ายต่อทุก 1,000 ₭",
-        "3ตัว": "🎯 เลข 3 ตัว  (บน/โต๊ด/รวม) — จ่ายต่อทุก 1,000 ₭"
+        "2ตัว": "🎯 เลข 2 ຕົວ  (บน/ล่าง/รวม) — จ่ายต่อทุก 1,000 ₭",
+        "3ตัว": "🎯 เลข 3 ຕົວ  (บน/โต๊ด/รวม) — จ่ายต่อทุก 1,000 ₭"
     };
     let html = '';
     Object.entries(labels).forEach(([key, label]) => {
@@ -1941,7 +1977,7 @@ function savePayoutSettings() {
     })
     .then(res => res.json()).then(data => {
         showLoading(false);
-        showStatusModal(data.success ? "💎 สำเร็จ" : "❌ ล้มเหลว", data.message, data.success);
+        showStatusModal(data.success ? "💎 ສຳເລັດ" : "❌ ล้มเหลว", data.message, data.success);
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
 
@@ -1950,7 +1986,7 @@ let _serverTimeOffset = 0;
 let _clockSynced = false;
 let _clockInterval = null;
 
-// popup หมดเวลา
+// popup ໝົດເວລາ
 function showTimeLimitPopup(huayType) {
     const limitStr = huayType === 'ไทย' ? serverTimeLimits.thai : serverTimeLimits.lao;
     let modal = document.getElementById('timeLimitPopup');
@@ -1962,7 +1998,7 @@ function showTimeLimitPopup(huayType) {
         modal.innerHTML = `
             <div style="background:var(--bg-card); border:2px solid var(--ios-pink); border-radius:20px; padding:28px 24px; width:100%; max-width:320px; text-align:center;">
                 <div style="font-size:48px; margin-bottom:12px;">⏰</div>
-                <div style="font-size:20px; font-weight:900; color:var(--ios-pink); margin-bottom:8px;">หมดเวลาแล้ว!</div>
+                <div style="font-size:20px; font-weight:900; color:var(--ios-pink); margin-bottom:8px;">ໝົດເວລາแล้ว!</div>
                 <div id="timeLimitMsg" style="font-size:14px; color:var(--text-muted); margin-bottom:20px;"></div>
                 <button onclick="document.getElementById('timeLimitPopup').style.display='none'"
                     style="background:var(--ios-pink); color:#fff; border:none; border-radius:12px; padding:12px 32px; font-size:16px; font-weight:700; cursor:pointer; width:100%;">
@@ -1978,11 +2014,11 @@ function showTimeLimitPopup(huayType) {
 function startServerClock() {
     syncServerTime();
     setInterval(syncServerTime, 5 * 60 * 1000);
-    // tick ทุก 1 วินาที
+    // tick ทุก 1 วิນາທີ
     if(_clockInterval) clearInterval(_clockInterval);
     _clockInterval = setInterval(() => {
         tickClock();
-        // เช็คเตือนใกล้หมดเวลาทุก 1 วินาที แต่ logic เตือนแค่ครั้งเดียวต่อวัน
+        // เช็คเตือนໃກ້ໝົດເວລາทุก 1 วิນາທີ แต่ logic เตือนแค่ຄັ້ງเดียวต่อวัน
         if(new Date().getSeconds() === 0) checkNearClosingTime();
     }, 1000);
 }
@@ -2032,13 +2068,13 @@ function isTimeLimitExceeded(huayType) {
     return nowMinutes >= limitMinutes;
 }
 
-// ========== ⏱️ SESSION TIMEOUT (30 นาที) ==========
+// ========== ⏱️ SESSION TIMEOUT (30 ນາທີ) ==========
 let _sessionTimer = null;
 let _sessionWarned = false;
 
 function startSessionTimeout() {
     resetSessionTimer();
-    // reset timer ทุกครั้งที่มีการแตะหน้าจอ
+    // reset timer ทุกຄັ້ງที่มีการแตะหน้าจอ
     ['touchstart','click','keydown'].forEach(evt => {
         document.addEventListener(evt, resetSessionTimer, { passive: true });
     });
@@ -2047,15 +2083,15 @@ function startSessionTimeout() {
 function resetSessionTimer() {
     _sessionWarned = false;
     if(_sessionTimer) clearTimeout(_sessionTimer);
-    // เตือน 5 นาทีก่อนหมด (25 นาที)
+    // เตือน 5 ນາທີก่อนหมด (25 ນາທີ)
     _sessionTimer = setTimeout(() => {
         if(!_sessionWarned) {
             _sessionWarned = true;
-            showStatusModal("⚠️ แจ้งเตือน", "ระบบจะออกจากระบบอัตโนมัติใน 5 นาที\nกรุณาแตะหน้าจอเพื่อต่อเวลา", false);
+            showStatusModal("⚠️ แจ้งเตือน", "ระบบจะออกจากระบบอัตโนมัติใน 5 ນາທີ\nกรุณาแตะหน้าจอเพื่อต่อเวลา", false);
         }
-        // logout จริงอีก 5 นาที
+        // logout จริงอีก 5 ນາທີ
         _sessionTimer = setTimeout(() => {
-            showStatusModal("🔒 หมดเวลาใช้งาน", "ระบบออกจากระบบอัตโนมัติแล้ว กรุณา login ใหม่", false, () => logout());
+            showStatusModal("🔒 ໝົດເວລາใช้งาน", "ระบบออกจากระบบอัตโนมัติแล้ว กรุณา login ใหม่", false, () => logout());
         }, 5 * 60 * 1000);
     }, 25 * 60 * 1000);
 }
@@ -2065,7 +2101,7 @@ let _heartbeatInterval = null;
 
 function startSessionHeartbeat() {
     if(_heartbeatInterval) clearInterval(_heartbeatInterval);
-    // ส่ง heartbeat ทุก 2 นาที เพื่อต่ออายุ session lock ใน Sheet
+    // ส่ง heartbeat ทุก 2 ນາທີ เพื่อต่ออายุ session lock ใน Sheet
     _heartbeatInterval = setInterval(() => {
         if(!_sessionToken || !currentUser.username) return;
         fetch(BACKEND_API_URL, {
@@ -2077,7 +2113,7 @@ function startSessionHeartbeat() {
             // ถ้า backend บอกว่า session นี้ถูกแย่งแล้ว → force logout
             if(data && data.forceLogout) {
                 clearInterval(_heartbeatInterval);
-                showStatusModal("🔒 ถูกออกจากระบบ", "มีการเข้าสู่ระบบจากเครื่องอื่น", false, () => {
+                showStatusModal("🔒 ຖືກອອກຈາກລະບົບ", "มีการເຂົ້າສູ່ລະບົບจากเครื่องอื่น", false, () => {
                     _sessionToken = null;
                     logout();
                 });
@@ -2086,7 +2122,7 @@ function startSessionHeartbeat() {
     }, 2 * 60 * 1000);
 }
 
-// ========== 🔔 เตือนใกล้หมดเวลาขาย ==========
+// ========== 🔔 เตือนໃກ້ໝົດເວລາขาย ==========
 let _warnedLao = false, _warnedThai = false;
 
 function checkNearClosingTime() {
@@ -2101,9 +2137,9 @@ function checkNearClosingTime() {
         const warned = type === 'ไทย' ? _warnedThai : _warnedLao;
 
         if(diff === 15 && !warned) {
-            // เตือนล่วงหน้า 15 นาที
+            // เตือนล่วงหน้า 15 ນາທີ
             if(type === 'ไทย') _warnedThai = true; else _warnedLao = true;
-            showStatusModal("⚠️ ใกล้หมดเวลา!", `หวย${type} จะปิดรับใน 15 นาที (${limitStr} น.)`, false);
+            showStatusModal("⚠️ ໃກ້ໝົດເວລາ!", `หวย${type} จะปิดรับใน 15 ນາທີ (${limitStr} น.)`, false);
         }
         // reset flag เที่ยงคืน
         if(nowMin === 0) { _warnedLao = false; _warnedThai = false; }
@@ -2131,7 +2167,7 @@ function saveWinResultToHistory(winNum, position, date, billCount, totalPayout) 
     })
     .then(res => res.json()).then(data => {
         showLoading(false);
-        showStatusModal(data.success ? "🏆 สำเร็จ" : "❌ ล้มเหลว", data.message, data.success);
+        showStatusModal(data.success ? "🏆 ສຳເລັດ" : "❌ ล้มเหลว", data.message, data.success);
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
 
@@ -2154,7 +2190,7 @@ function loadAdminSalesReport() {
         const staffMap = {};
 
         (data.rawData||[]).forEach(row => {
-            if(row.status === 'ยกเลิก') return;
+            if(row.status === 'ຍົກເລີກ') return;
             const parts = row.date.split('/');
             if(parts.length !== 3) return;
             const rowDate = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
@@ -2166,7 +2202,7 @@ function loadAdminSalesReport() {
             if(rowDate.getMonth() === now.getMonth() && rowDate.getFullYear() === now.getFullYear()) month += row.price;
             if(rowDate.getFullYear() === now.getFullYear()) year += row.price;
 
-            // แยกพนักงาน
+            // แยกພະນັກງານ
             const u = row.username || 'ไม่ระบุ';
             if(!staffMap[u]) staffMap[u] = 0;
             staffMap[u] += row.price;
@@ -2179,9 +2215,9 @@ function loadAdminSalesReport() {
         setEl('rptWeek',      fmt(week));
         setEl('rptMonth',     fmt(month));
         setEl('rptYear',      fmt(year));
-        setEl('rptBills',     data.totalBills + ' บิล');
+        setEl('rptBills',     data.totalBills + ' ບິນ');
 
-        // ดึงสถิติคนถูกหวยจาก WinHistory
+        // ดึงสถิติຄົນຖືກຫວຍจาก WinHistory
         fetch(BACKEND_API_URL, {
             method:"POST", mode:"cors",
             headers:{"Content-Type":"text/plain;charset=utf-8"},
@@ -2199,7 +2235,7 @@ function loadAdminSalesReport() {
     }).catch(err => console.error(err));
 }
 
-// 👥 โหลดรายชื่อพนักงาน
+// 👥 โหลดรายຊື່ພະນັກງານ
 function loadStaffList() {
     fetch(BACKEND_API_URL, {
         method:"POST", mode:"cors",
@@ -2209,7 +2245,7 @@ function loadStaffList() {
     .then(res => res.json()).then(data => {
         const container = document.getElementById('staffListContainer');
         if(!data.users || data.users.length === 0) {
-            container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">ยังไม่มีพนักงานในระบบ</p>`;
+            container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">ยังไม่มีພະນັກງານในระบบ</p>`;
             return;
         }
         container.innerHTML = data.users.map(u => `
@@ -2224,7 +2260,7 @@ function loadStaffList() {
 }
 
 function openAddStaffModal() {
-    document.getElementById('staffModalTitle').innerText = '➕ เพิ่มพนักงานใหม่';
+    document.getElementById('staffModalTitle').innerText = '➕ ເພີ່ມພະນັກງານໃໝ່';
     document.getElementById('staffNameInput').value = '';
     document.getElementById('staffPinInput').value = '';
     document.getElementById('staffNameInput').removeAttribute('readonly');
@@ -2233,7 +2269,7 @@ function openAddStaffModal() {
 }
 
 function openEditStaff(name) {
-    document.getElementById('staffModalTitle').innerText = `✏️ แก้ไข PIN — ${name}`;
+    document.getElementById('staffModalTitle').innerText = `✏️ ແກ້ໄຂ PIN — ${name}`;
     document.getElementById('staffNameInput').value = name;
     document.getElementById('staffNameInput').setAttribute('readonly', true);
     document.getElementById('staffPinInput').value = '';
@@ -2245,7 +2281,7 @@ function submitStaffForm() {
     const name = document.getElementById('staffNameInput').value.trim();
     const pin  = document.getElementById('staffPinInput').value.trim();
     const mode = document.getElementById('staffEditMode').value;
-    if(!name) { alert('⚠️ กรุณากรอกชื่อพนักงาน'); return; }
+    if(!name) { alert('⚠️ กรุณากรอกຊື່ພະນັກງານ'); return; }
     if(!pin || pin.length !== 4) { alert('⚠️ PIN ต้องเป็นตัวเลข 4 หลัก'); return; }
 
     showLoading(true);
@@ -2257,12 +2293,12 @@ function submitStaffForm() {
     .then(res => res.json()).then(data => {
         showLoading(false);
         document.getElementById('staffModal').style.display = 'none';
-        showStatusModal(data.success ? "💎 สำเร็จ" : "❌ ล้มเหลว", data.message, data.success, () => loadStaffList());
+        showStatusModal(data.success ? "💎 ສຳເລັດ" : "❌ ล้มเหลว", data.message, data.success, () => loadStaffList());
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
 
 function deleteStaff(name) {
-    if(!confirm(`⚠️ ลบพนักงาน "${name}" ออกจากระบบ?\nข้อมูลการขายจะยังคงอยู่`)) return;
+    if(!confirm(`⚠️ ລົບພະນັກງານ "${name}" ออกจากระบบ?\nข้อมูลการขายจะยังคงอยู่`)) return;
     showLoading(true);
     fetch(BACKEND_API_URL, {
         method:"POST", mode:"cors",
@@ -2271,7 +2307,7 @@ function deleteStaff(name) {
     })
     .then(res => res.json()).then(data => {
         showLoading(false);
-        showStatusModal(data.success ? "💎 สำเร็จ" : "❌ ล้มเหลว", data.message, data.success, () => loadStaffList());
+        showStatusModal(data.success ? "💎 ສຳເລັດ" : "❌ ล้มเหลว", data.message, data.success, () => loadStaffList());
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
 
@@ -2314,7 +2350,7 @@ function saveTimeLimits() {
             serverTimeLimits.lao  = lao;
             serverTimeLimits.thai = thai;
         }
-        showStatusModal(data.success ? "💎 สำเร็จ" : "❌ ล้มเหลว", data.message, data.success);
+        showStatusModal(data.success ? "💎 ສຳເລັດ" : "❌ ล้มเหลว", data.message, data.success);
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
 
@@ -2339,7 +2375,7 @@ function executeSearchWinners2() {
         const div = document.getElementById('winnersResultList2');
         div.innerHTML = "";
         if(!data.success || data.data.length === 0) {
-            div.innerHTML = `<div class="card" style="text-align:center; padding:20px; color:var(--text-muted);">📭 ไม่พบรายการถูกรางวัล</div>`;
+            div.innerHTML = `<div class="card" style="text-align:center; padding:20px; color:var(--text-muted);">📭 ไม่พบລາຍການถูกรางวัล</div>`;
             return;
         }
         const billMap = {};
@@ -2368,13 +2404,13 @@ function executeSearchWinners2() {
                             </div>
                             <div style="font-size:12px; color:var(--text-muted);">👤 ${bill.username} | 📅 ${bill.date}</div>
                         </div>
-                        <button onclick="openWinnerSlip('${bill.billId}')" style="background:var(--ios-blue); color:#fff; border:none; border-radius:10px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer;">🧾 ดูใบบิน</button>
+                        <button onclick="openWinnerSlip('${bill.billId}')" style="background:var(--ios-blue); color:#fff; border:none; border-radius:10px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer;">🧾 ເບິ່ງໃບບິນ</button>
                     </div>
                     ${itemsHtml}
-                    <div style="text-align:right; padding-top:6px; border-top:1px dashed var(--border-color); font-size:14px; font-weight:800; color:var(--ios-green);">รวมรางวัลบิลนี้: ${bill.totalWin.toLocaleString()} ₭</div>
+                    <div style="text-align:right; padding-top:6px; border-top:1px dashed var(--border-color); font-size:14px; font-weight:800; color:var(--ios-green);">ລວມລາງວັນບິນນີ້: ${bill.totalWin.toLocaleString()} ₭</div>
                 </div>`;
         });
-        html += `<div style="padding:12px; background:rgba(48,209,88,0.2); border-radius:12px; text-align:center; font-weight:900; color:var(--ios-green); font-size:18px; border:2px solid rgba(48,209,88,0.5);">💰 รวมยอดรางวัลทั้งหมด: ${grandTotal.toLocaleString()} ₭</div>`;
+        html += `<div style="padding:12px; background:rgba(48,209,88,0.2); border-radius:12px; text-align:center; font-weight:900; color:var(--ios-green); font-size:18px; border:2px solid rgba(48,209,88,0.5);">💰 ລວມຍອດລາງວັນທັງໝົດ: ${grandTotal.toLocaleString()} ₭</div>`;
         
         const totalBills2 = Object.keys(billMap).length;
         const winNum2  = document.getElementById('searchWinNum2').value.trim();
@@ -2382,12 +2418,12 @@ function executeSearchWinners2() {
         html += `
         <button onclick="saveWinResultToHistory('${winNum2}','${posFilter2}','${formattedDate}',${totalBills2},${grandTotal})"
             style="width:100%; background:#15803d; color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px;">
-            ✅ บันทึกผลรางวัลวันนี้ลงประวัติ
+            ✅ ບັນທຶກຜົນລາງວັນລົງປະຫວັດ
         </button>`;
         div.innerHTML = html;
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
-// 📈 วาดกราฟยอดขาย 7 วันย้อนหลัง
+// 📈 วาดกราฟຍອດຂາຍ 7 ວັນຜ່ານມາ
 let _salesChartInstance = null;
 function renderSalesChart(rawData) {
     const canvas = document.getElementById('salesChart');
@@ -2404,7 +2440,7 @@ function renderSalesChart(rawData) {
         const label = `${d.getDate()}/${d.getMonth()+1}`;
         const dateStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
         days.push(label);
-        const total = rawData.filter(r => r.date === dateStr && r.status !== 'ยกเลิก').reduce((s,r) => s + r.price, 0);
+        const total = rawData.filter(r => r.date === dateStr && r.status !== 'ຍົກເລີກ').reduce((s,r) => s + r.price, 0);
         sales.push(total);
     }
 
@@ -2481,7 +2517,7 @@ function setAppColorMode(mode) {
     localStorage.setItem('appColorMode', mode);
     applyColorMode(mode);
     initColorModeUI();
-    showStatusModal('✅ บันทึกแล้ว', `เปลี่ยนเป็นโหมด ${mode === 'light' ? 'สว่าง ☀️' : mode === 'dark' ? 'มืด 🌙' : 'Auto 🔄'} แล้ว`, true);
+    showStatusModal('✅ ບັນທຶກແລ້ວ', `ປ່ຽນເປັນໂໝດ ${mode === 'light' ? 'ສະຫວ່າງ ☀️' : mode === 'dark' ? 'ມືດ 🌙' : 'ອັດຕະໂນມັດ 🔄'} แล้ว`, true);
 }
 
 function applyColorMode(mode) {
@@ -2608,7 +2644,7 @@ function changeAdminPassword() {
         return;
     }
     if(newPass !== confirmPass) {
-        showStatusModal('❌ ผิดพลาด', 'รหัสผ่านใหม่ไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง', false);
+        showStatusModal('❌ ผิดพลาด', 'รหัสผ่านใหม่ไม่ตรงกัน กรุณาตรวจสอบอีกຄັ້ງ', false);
         return;
     }
     if(newPass.length < 6) {
@@ -2623,7 +2659,7 @@ function changeAdminPassword() {
     })
     .then(res => res.json()).then(data => {
         showLoading(false);
-        showStatusModal(data.success ? '✅ สำเร็จ' : '❌ ล้มเหลว', data.message, data.success);
+        showStatusModal(data.success ? '✅ ສຳເລັດ' : '❌ ล้มเหลว', data.message, data.success);
         if(data.success) {
             document.getElementById('oldAdminPass').value = '';
             document.getElementById('newAdminPass').value = '';
@@ -2637,13 +2673,13 @@ let _exportType   = 'allBills';
 
 const EXPORT_TYPES = {
     superadmin: [
-        { id:'allBills',      label:'🧾 รายการบิลทั้งหมด',        desc:'ทุกบิลในระบบ' },
-        { id:'salesDaily',    label:'📅 ยอดขายรายวัน',            desc:'สรุปยอดแต่ละวัน' },
-        { id:'salesByStaff',  label:'👤 ยอดขายแยกรายพนักงาน',    desc:'เปรียบเทียบพนักงาน' },
-        { id:'winners',       label:'🏆 รายงานคนถูกหวย',          desc:'ประวัติรางวัลที่จ่าย' },
+        { id:'allBills',      label:'🧾 ລາຍການບິນทั้งหมด',        desc:'ทุกບິນในระบบ' },
+        { id:'salesDaily',    label:'📅 ຍອດຂາຍລາຍວັນ',            desc:'สรุปยอดแต่ละวัน' },
+        { id:'salesByStaff',  label:'👤 ยอดขายแยกรายພະນັກງານ',    desc:'เปรียบเทียบພະນັກງານ' },
+        { id:'winners',       label:'🏆 รายงานຄົນຖືກຫວຍ',          desc:'ประวัติรางวัลที่จ่าย' },
     ],
     staff: [
-        { id:'myBills',       label:'🧾 รายการบิลของฉัน',          desc:'บิลที่ฉันขาย' },
+        { id:'myBills',       label:'🧾 ລາຍການບິນของฉัน',          desc:'ບິນที่ฉันขาย' },
         { id:'mySalesDaily',  label:'📅 ยอดขายของฉันรายวัน',      desc:'สรุปยอดแต่ละวัน' },
     ]
 };
@@ -2723,7 +2759,7 @@ function backFromExport() {
 function doExport() {
     const dateFrom = document.getElementById('exportDateFrom').value;
     const dateTo   = document.getElementById('exportDateTo').value;
-    if(!dateFrom || !dateTo) { showStatusModal('ไม่สำเร็จ','กรุณาเลือกช่วงวันที่',false); return; }
+    if(!dateFrom || !dateTo) { showStatusModal('ไม่ສຳເລັດ','ກະລຸນາເລືອກຊ່ວງວັນທີ',false); return; }
 
     showLoading(true);
     // ดึงข้อมูลจาก backend แล้ว generate
@@ -2741,10 +2777,10 @@ function doExport() {
     })
     .then(r => r.json()).then(data => {
         showLoading(false);
-        if(!data.success) { showStatusModal('ไม่สำเร็จ', data.message || 'เกิดข้อผิดพลาด', false); return; }
+        if(!data.success) { showStatusModal('ไม่ສຳເລັດ', data.message || 'เกิดข้อผิดพลาด', false); return; }
         if(_exportFormat === 'excel') generateExcel(data, _exportType, dateFrom, dateTo);
         else                          generatePDF(data, _exportType, dateFrom, dateTo);
-    }).catch(err => { showLoading(false); showStatusModal('ไม่สำเร็จ', err.toString(), false); });
+    }).catch(err => { showLoading(false); showStatusModal('ไม่ສຳເລັດ', err.toString(), false); });
 }
 
 // ========== EXCEL ==========
@@ -2753,48 +2789,48 @@ function generateExcel(data, type, dateFrom, dateTo) {
     const wb = XLSX.utils.book_new();
 
     if(type === 'allBills' || type === 'myBills') {
-        const rows = [['Bill ID','วันที่','เวลา','พนักงาน','ลูกค้า','เลข','ตำแหน่ง','ราคา','ประเภท','สถานะ']];
+        const rows = [['Bill ID','วันที่','เวลา','ພະນັກງານ','ลูกค้า','เลข','ตำแหน่ง','ราคา','ประเภท','สถานะ']];
         (data.rows || []).forEach(r => rows.push([r.billId,r.date,r.time,r.staff,r.customer,r.num,r.position,r.price,r.type,r.status]));
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'รายการบิล');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'ລາຍການບິນ');
     } else if(type === 'salesDaily' || type === 'mySalesDaily') {
-        const rows = [['วันที่','ยอดขาย (₭)','จำนวนบิล']];
+        const rows = [['วันที่','ยอดขาย (₭)','จำนวนບິນ']];
         (data.rows || []).forEach(r => rows.push([r.date, r.total, r.bills]));
         XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'ยอดรายวัน');
     } else if(type === 'salesByStaff') {
-        const rows = [['พนักงาน','ยอดขาย (₭)','จำนวนบิล']];
+        const rows = [['ພະນັກງານ','ยอดขาย (₭)','จำนวนບິນ']];
         (data.rows || []).forEach(r => rows.push([r.staff, r.total, r.bills]));
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'ยอดรายพนักงาน');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'ยอดรายພະນັກງານ');
     } else if(type === 'winners') {
-        const rows = [['วันที่','ลูกค้า','พนักงาน','เลข','ตำแหน่ง','ยอดรางวัล (₭)']];
+        const rows = [['วันที่','ลูกค้า','ພະນັກງານ','เลข','ตำแหน่ง','ยอดรางวัล (₭)']];
         (data.rows || []).forEach(r => rows.push([r.date,r.customer,r.staff,r.num,r.position,r.winAmount]));
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'คนถูกหวย');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'ຄົນຖືກຫວຍ');
     }
 
     const fname = `HUAYPLUS_${type}_${dateFrom}_${dateTo}.xlsx`;
     XLSX.writeFile(wb, fname);
-    showStatusModal('สำเร็จ', `บันทึก ${fname}`, true);
+    showStatusModal('ສຳເລັດ', `บันทึก ${fname}`, true);
 }
 
 // ========== PDF — Blob URL (iOS Safari compatible) ==========
 function generatePDF(data, type, dateFrom, dateTo) {
     const titleMap = {
-        allBills:'รายการบิลทั้งหมด', myBills:'รายการบิลของฉัน',
-        salesDaily:'ยอดขายรายวัน', mySalesDaily:'ยอดขายรายวันของฉัน',
-        salesByStaff:'ยอดขายแยกรายพนักงาน', winners:'รายงานคนถูกหวย'
+        allBills:'ລາຍການບິນทั้งหมด', myBills:'ລາຍການບິນของฉัน',
+        salesDaily:'ຍອດຂາຍລາຍວັນ', mySalesDaily:'ຍອດຂາຍລາຍວັນของฉัน',
+        salesByStaff:'ยอดขายแยกรายພະນັກງານ', winners:'รายงานຄົນຖືກຫວຍ'
     };
 
     let headers = [], rowMapper;
     if(type==='allBills'||type==='myBills') {
-        headers = ['Bill ID','วันที่','เวลา','พนักงาน','ลูกค้า','เลข','ตำแหน่ง','ราคา (₭)','ประเภท','สถานะ'];
+        headers = ['Bill ID','วันที่','เวลา','ພະນັກງານ','ลูกค้า','เลข','ตำแหน่ง','ราคา (₭)','ประเภท','สถานะ'];
         rowMapper = r => [r.billId,r.date,r.time,r.staff,r.customer,r.num,r.position,(r.price||0).toLocaleString(),r.type,r.status];
     } else if(type==='salesDaily'||type==='mySalesDaily') {
-        headers = ['วันที่','ยอดขาย (₭)','จำนวนบิล'];
+        headers = ['วันที่','ยอดขาย (₭)','จำนวนບິນ'];
         rowMapper = r => [r.date,(r.total||0).toLocaleString(),r.bills];
     } else if(type==='salesByStaff') {
-        headers = ['พนักงาน','ยอดขาย (₭)','จำนวนบิล'];
+        headers = ['ພະນັກງານ','ยอดขาย (₭)','จำนวนບິນ'];
         rowMapper = r => [r.staff,(r.total||0).toLocaleString(),r.bills];
     } else if(type==='winners') {
-        headers = ['วันที่','ลูกค้า','พนักงาน','เลข','ตำแหน่ง','ยอดรางวัล (₭)'];
+        headers = ['วันที่','ลูกค้า','ພະນັກງານ','เลข','ตำแหน่ง','ยอดรางวัล (₭)'];
         rowMapper = r => [r.date,r.customer,r.staff,r.num,r.position,(r.winAmount||0).toLocaleString()];
     }
 
@@ -2823,14 +2859,14 @@ function generatePDF(data, type, dateFrom, dateTo) {
     </head><body>
         <h1>HUAYPLUS — ${titleMap[type]||type}</h1>
         <div class="meta">
-            ช่วงวันที่: ${dateFrom} ถึง ${dateTo}<br>
-            Export: ${new Date().toLocaleString('th-TH')}
+            ຊ່ວງວັນທີ: ${dateFrom} ເຖິງ ${dateTo}<br>
+            ສົ່ງອອກ: ${new Date().toLocaleString('th-TH')}
         </div>
         <table>
             <thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
             <tbody>${tableRows}</tbody>
         </table>
-        <div class="footer">รวมทั้งหมด: ${rows.length} รายการ</div>
+        <div class="footer">ລວມທັງໝົດ: ${rows.length} ລາຍການ</div>
         <button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
     </body></html>`;
 
@@ -2849,5 +2885,5 @@ function generatePDF(data, type, dateFrom, dateTo) {
 
     // revoke หลัง 60 วิ
     setTimeout(() => URL.revokeObjectURL(url), 60000);
-    showStatusModal('สำเร็จ', 'กด "Print / Save as PDF" ในหน้าที่เปิด', true);
+    showStatusModal('ສຳເລັດ', 'กด "Print / Save as PDF" ในหน้าที่เปิด', true);
 }
