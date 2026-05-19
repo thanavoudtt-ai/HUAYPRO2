@@ -16,12 +16,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // ✅ Set ความสูงจอจริงก่อน render ป้องกัน iPhone คำนวณ height ผิด
+        function setAppHeight() {
+            document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+        }
+        setAppHeight();
+        window.addEventListener('resize', setAppHeight);
+    </script>
 </head>
 <body>
     <div class="page-wrapper">
         
         <!-- หน้า Login -->
-        <div id="loginContainer" style="display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0; position:relative;">
+        <div id="loginContainer" style="display:flex; flex-direction:column; flex:1; overflow:hidden; position:relative;">
 
             <!-- Switch ເທິງขวา -->
             <div style="position:absolute; top:16px; right:16px; z-index:10;">

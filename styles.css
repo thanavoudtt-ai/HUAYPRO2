@@ -11,14 +11,25 @@
     --text-main: #f5e6c8;
     --text-muted: #c4883a;
     --chip-bg: #3a1508;
+    /* JS จะ set --app-h ให้ตรงกับความสูงจอจริง */
+    --app-h: 100vh;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Lao', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-html, body {
-    /* ✅ ใช้ dvh เพื่อให้เต็มจอจริงๆ บน iPhone (ไม่รวม browser bar) */
-    height: 100dvh;
+html {
+    height: 100%;
     width: 100%;
     overflow: hidden;
+    background-color: var(--bg-main);
+}
+
+body {
+    /* ✅ ใช้ --app-h ที่ JS set ให้ แทน 100% ที่คำนวณผิดบน iPhone */
+    height: var(--app-h);
+    width: 100%;
+    overflow: hidden;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
     background-color: var(--bg-main);
     color: var(--text-main);
     -webkit-user-select: none;
@@ -26,12 +37,12 @@ html, body {
     overscroll-behavior: none;
 }
 
-/* ✅ page-wrapper เต็มจอ flex column */
 .page-wrapper {
     width: 100%;
     max-width: 480px;
     margin: 0 auto;
-    height: 100dvh;
+    /* ✅ ใช้ --app-h เหมือนกัน */
+    height: var(--app-h);
     display: flex;
     flex-direction: column;
     background: var(--bg-main);
@@ -130,7 +141,6 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 .bb-secondary { background: #3a1508; border: 1px solid var(--border-color); color: var(--text-main) !important; }
 .bb-logout { background: rgba(224,80,48,0.12); border: 1px solid rgba(224,80,48,0.3); color: var(--ios-pink) !important; }
 /* ========== 📱 BOTTOM NAVIGATION BAR ========== */
-/* ✅ flex-shrink:0 ดันลงล่างสุดโดย flex column อัตโนมัติ */
 .bottom-nav {
     flex-shrink: 0;
     width: 100%;
@@ -138,6 +148,7 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     border-top: 1px solid #5a2210;
     display: flex;
     align-items: stretch;
+    /* รองรับ iPhone home indicator */
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .nav-tab {
@@ -157,7 +168,6 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     min-height: 50px;
 }
 .nav-tab:active { opacity: 0.6; }
-/* ✅ ให้ SVG inherit stroke จาก nav-tab */
 .nav-tab svg {
     width: 23px;
     height: 23px;
@@ -171,18 +181,14 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     transition: color 0.15s ease;
     line-height: 1;
 }
-/* active */
 .nav-tab.active span { color: #f5a623; }
 .nav-tab.active svg { stroke: #f5a623; }
-/* ครอบคลุม SVG elements ทุกประเภท */
 .nav-tab svg path,
 .nav-tab svg circle,
 .nav-tab svg line,
 .nav-tab svg polyline,
 .nav-tab svg rect,
 .nav-tab svg ellipse { stroke: inherit; transition: stroke 0.15s ease; }
-/* จุด 3 จุด (fill) */
 .nav-tab svg [fill="currentColor"] { fill: #7a4030; stroke: none; }
 .nav-tab.active svg [fill="currentColor"] { fill: #f5a623; stroke: none; }
-/* ป้องกัน override inline stroke="none" */
 .nav-tab svg [stroke="none"] { stroke: none !important; }
