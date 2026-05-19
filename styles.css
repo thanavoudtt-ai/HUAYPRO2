@@ -28,12 +28,14 @@ body { color: var(--text-main); -webkit-user-select: none; user-select: none; ov
     width: 100%;
     max-width: 480px;
     margin: 0 auto;
-    height: 100vh;
-    height: 100dvh;
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
     display: flex;
     flex-direction: column;
     background: var(--bg-main);
-    position: relative;
     overflow: hidden;
     padding-top: env(safe-area-inset-top);
     box-sizing: border-box;
