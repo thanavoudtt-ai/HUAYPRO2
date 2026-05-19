@@ -11,13 +11,10 @@
     --text-main: #f5e6c8;
     --text-muted: #c4883a;
     --chip-bg: #3a1508;
-    /* ความสูง nav bar รวม safe area */
-    --nav-height: 56px;
-    --nav-total: calc(56px + env(safe-area-inset-bottom, 0px));
 }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Lao', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-html, body {
+html {
     height: 100%;
     width: 100%;
     overflow: hidden;
@@ -25,15 +22,18 @@ html, body {
 }
 
 body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--bg-main);
     color: var(--text-main);
     -webkit-user-select: none;
     user-select: none;
     overscroll-behavior: none;
 }
 
-/* ✅ PAGE WRAPPER — เต็มจอ flex column */
 .page-wrapper {
     width: 100%;
     max-width: 480px;
@@ -43,21 +43,11 @@ body {
     flex-direction: column;
     background: var(--bg-main);
     overflow: hidden;
-    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: env(safe-area-inset-top);
     box-sizing: border-box;
 }
 
-/* ✅ MAIN APP — flex column ระหว่าง topbar กับ nav */
-#mainApp {
-    display: none;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    /* เว้นล่างให้ fixed nav */
-    padding-bottom: var(--nav-total);
-}
-
-/* ✅ app-container scroll ได้เต็มที่ */
+/* ส่วนที่ scroll ได้ต้องระบุเองในแต่ละ page */
 .app-container {
     padding: 16px;
     width: 100%;
@@ -68,7 +58,6 @@ body {
     flex-direction: column;
     animation: fadeIn 0.3s ease-in-out;
 }
-
 .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 .hidden { display: none !important; }
 .input-group { display: flex; flex-direction: column; margin-bottom: 16px; min-width: 0; }
@@ -84,7 +73,7 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 .segmented-control { display: flex; background: #220d07; padding: 4px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 12px; }
 .segment-btn { flex: 1; background: transparent; border: none; color: var(--text-muted); padding: 10px; font-size: 14px; font-weight: 700; border-radius: 8px; cursor: pointer; }
 .segment-btn.active { background: var(--ios-blue); color: #1a0806; }
-.navbar-top { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #220d07; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+.navbar-top { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #220d07; border-bottom: 1px solid var(--border-color); }
 .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
 .btn-logout { background: rgba(224,80,48,0.15); color: var(--ios-pink); border: 1px solid rgba(224,80,48,0.3); padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; }
 .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
@@ -114,12 +103,13 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 .menu-item { transition: transform 0.12s ease, box-shadow 0.12s ease; }
 .menu-item:active { transform: scale(0.94); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
-/* ✅ BOTTOM ACTION BAR — อยู่ใน content ปกติ ไม่ลอย */
+/* 📱 BOTTOM ACTION BAR */
 .bottom-bar {
     flex-shrink: 0;
     background: transparent;
     border-top: none;
-    padding: 8px 16px 12px;
+    padding: 8px 16px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
     display: flex;
     gap: 10px;
     align-items: center;
@@ -128,7 +118,7 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     flex: 1;
     border: none;
     border-radius: 12px;
-    padding: 13px 10px;
+    padding: 11px 10px;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
@@ -146,26 +136,14 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 .bb-danger  { background: var(--ios-pink); color: #fff !important; }
 .bb-secondary { background: #3a1508; border: 1px solid var(--border-color); color: var(--text-main) !important; }
 .bb-logout { background: rgba(224,80,48,0.12); border: 1px solid rgba(224,80,48,0.3); color: var(--ios-pink) !important; }
-
-/* ========== ✅ BOTTOM NAVIGATION BAR — ติดขอบล่างเหมือน Facebook ========== */
+/* ========== 📱 BOTTOM NAVIGATION BAR ========== */
 .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    /* center บน desktop ที่ max-width 480px */
+    flex-shrink: 0;
     width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    left: 50%;
-    transform: translateX(-50%);
     background: #1a0806;
     border-top: 1px solid #5a2210;
     display: flex;
     align-items: stretch;
-    z-index: 200;
-    height: var(--nav-height);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .nav-tab {
     flex: 1;
@@ -173,52 +151,31 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 4px 2px;
+    padding: 8px 4px;
     cursor: pointer;
     border: none;
     background: transparent;
     font-family: 'Noto Sans Lao', sans-serif;
     transition: opacity 0.15s ease;
-    gap: 2px;
+    gap: 3px;
     -webkit-tap-highlight-color: transparent;
 }
 .nav-tab:active { opacity: 0.6; }
-.nav-tab svg {
-    width: 22px;
-    height: 22px;
-    /* ✅ default stroke สำหรับ SVG ทั้งหมด */
-    stroke: #7a4030;
-    transition: stroke 0.15s ease;
-}
+.nav-tab svg { width: 24px; height: 24px; }
 .nav-tab span {
     font-size: 10px;
     font-weight: 700;
     color: #7a4030;
     transition: color 0.15s ease;
-    line-height: 1;
 }
-/* active state */
 .nav-tab.active span { color: #f5a623; }
-.nav-tab.active svg { stroke: #f5a623; }
-
-/* ครอบคลุมทุก SVG element รวม path */
+.nav-tab.active svg path,
+.nav-tab.active svg circle,
+.nav-tab.active svg line,
+.nav-tab.active svg polyline,
+.nav-tab.active svg rect { stroke: #f5a623; }
 .nav-tab svg path,
 .nav-tab svg circle,
 .nav-tab svg line,
 .nav-tab svg polyline,
-.nav-tab svg rect,
-.nav-tab svg ellipse {
-    stroke: inherit;
-    transition: stroke 0.15s ease;
-}
-/* dot ที่ใช้ fill="currentColor" */
-.nav-tab svg circle[fill="currentColor"] {
-    fill: #7a4030;
-    stroke: none;
-}
-.nav-tab.active svg circle[fill="currentColor"] {
-    fill: #f5a623;
-    stroke: none;
-}
-/* ป้องกัน inline stroke="none" ถูก override */
-.nav-tab svg [stroke="none"] { stroke: none !important; }
+.nav-tab svg rect { stroke: #7a4030; transition: stroke 0.15s ease; }
