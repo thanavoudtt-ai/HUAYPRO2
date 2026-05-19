@@ -12,22 +12,33 @@
     --text-muted: #c4883a;
     --chip-bg: #3a1508;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Thai', sans-serif; -webkit-tap-highlight-color: transparent; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Lao', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-html, body {
+html {
     height: 100%;
     width: 100%;
-    overflow: hidden; /* ป้องกัน scroll ทั้งหมด */
-    position: fixed;  /* ป้องกัน iOS bounce */
+    overflow: hidden;
     background-color: var(--bg-main);
 }
 
-body { color: var(--text-main); -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
+body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
+}
 
 .page-wrapper {
     width: 100%;
     max-width: 480px;
     margin: 0 auto;
+    height: 100%;
     display: flex;
     flex-direction: column;
     background: var(--bg-main);
@@ -95,9 +106,10 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 /* 📱 BOTTOM ACTION BAR */
 .bottom-bar {
     flex-shrink: 0;
-    background: #220d07;
-    border-top: 1px solid var(--border-color);
-    padding: 8px 16px 8px;
+    background: transparent;
+    border-top: none;
+    padding: 8px 16px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
     display: flex;
     gap: 10px;
     align-items: center;
@@ -115,7 +127,7 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     justify-content: center;
     gap: 6px;
     transition: transform 0.1s ease;
-    font-family: 'Noto Sans Thai', sans-serif;
+    font-family: 'Noto Sans Lao', sans-serif;
     color: #1a0806;
 }
 .bottom-bar .bb-btn:active { transform: scale(0.94); }
@@ -124,3 +136,46 @@ input:focus, select:focus { border-color: var(--ios-blue); }
 .bb-danger  { background: var(--ios-pink); color: #fff !important; }
 .bb-secondary { background: #3a1508; border: 1px solid var(--border-color); color: var(--text-main) !important; }
 .bb-logout { background: rgba(224,80,48,0.12); border: 1px solid rgba(224,80,48,0.3); color: var(--ios-pink) !important; }
+/* ========== 📱 BOTTOM NAVIGATION BAR ========== */
+.bottom-nav {
+    flex-shrink: 0;
+    background: #1a0806;
+    border-top: 1px solid #5a2210;
+    display: flex;
+    align-items: stretch;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    font-family: 'Noto Sans Lao', sans-serif;
+    transition: opacity 0.15s ease;
+    gap: 3px;
+    -webkit-tap-highlight-color: transparent;
+}
+.nav-tab:active { opacity: 0.6; }
+.nav-tab svg { width: 24px; height: 24px; }
+.nav-tab span {
+    font-size: 10px;
+    font-weight: 700;
+    color: #7a4030;
+    transition: color 0.15s ease;
+}
+.nav-tab.active span { color: #f5a623; }
+.nav-tab.active svg path,
+.nav-tab.active svg circle,
+.nav-tab.active svg line,
+.nav-tab.active svg polyline,
+.nav-tab.active svg rect { stroke: #f5a623; }
+.nav-tab svg path,
+.nav-tab svg circle,
+.nav-tab svg line,
+.nav-tab svg polyline,
+.nav-tab svg rect { stroke: #7a4030; transition: stroke 0.15s ease; }
