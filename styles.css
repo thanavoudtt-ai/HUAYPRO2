@@ -183,7 +183,13 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     -webkit-tap-highlight-color: transparent;
 }
 .nav-tab:active { opacity: 0.6; }
-.nav-tab svg { width: 22px; height: 22px; }
+.nav-tab svg {
+    width: 22px;
+    height: 22px;
+    /* ✅ default stroke สำหรับ SVG ทั้งหมด */
+    stroke: #7a4030;
+    transition: stroke 0.15s ease;
+}
 .nav-tab span {
     font-size: 10px;
     font-weight: 700;
@@ -191,14 +197,28 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     transition: color 0.15s ease;
     line-height: 1;
 }
+/* active state */
 .nav-tab.active span { color: #f5a623; }
-.nav-tab.active svg path,
-.nav-tab.active svg circle,
-.nav-tab.active svg line,
-.nav-tab.active svg polyline,
-.nav-tab.active svg rect { stroke: #f5a623; }
+.nav-tab.active svg { stroke: #f5a623; }
+
+/* ครอบคลุมทุก SVG element รวม path */
 .nav-tab svg path,
 .nav-tab svg circle,
 .nav-tab svg line,
 .nav-tab svg polyline,
-.nav-tab svg rect { stroke: #7a4030; transition: stroke 0.15s ease; }
+.nav-tab svg rect,
+.nav-tab svg ellipse {
+    stroke: inherit;
+    transition: stroke 0.15s ease;
+}
+/* dot ที่ใช้ fill="currentColor" */
+.nav-tab svg circle[fill="currentColor"] {
+    fill: #7a4030;
+    stroke: none;
+}
+.nav-tab.active svg circle[fill="currentColor"] {
+    fill: #f5a623;
+    stroke: none;
+}
+/* ป้องกัน inline stroke="none" ถูก override */
+.nav-tab svg [stroke="none"] { stroke: none !important; }
