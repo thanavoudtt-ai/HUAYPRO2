@@ -15,6 +15,19 @@ let highlightPositionFilter = "ทั้งหมด";
 // ตัวแปรสำหรับจำพิกัดช่องที่นิ้วพนักงานจิ้มล่าสุดใน Pop-up
 let popupLastFocusedInput = null; 
 
+// ========== 📱 iOS PWA VIEWPORT FIX ==========
+// แก้ปัญหา height ไม่เต็มจอบน iOS PWA
+function fixIOSViewport() {
+    const wrapper = document.querySelector('.page-wrapper');
+    if(!wrapper) return;
+    const h = window.innerHeight;
+    wrapper.style.height = h + 'px';
+    wrapper.style.maxHeight = h + 'px';
+}
+fixIOSViewport();
+window.addEventListener('resize', fixIOSViewport);
+window.addEventListener('orientationchange', () => setTimeout(fixIOSViewport, 300));
+
 document.addEventListener("DOMContentLoaded", function() {
     const loginUser = document.getElementById('loginUser');
     if(loginUser) loginUser.focus();
