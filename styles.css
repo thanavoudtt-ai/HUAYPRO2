@@ -43,8 +43,10 @@ body {
     flex-direction: column;
     background: var(--bg-main);
     overflow: hidden;
-    padding-top: env(safe-area-inset-top);
+    padding-top: env(safe-area-inset-top, 0px);
     box-sizing: border-box;
+    /* ✅ bottom-nav จะอยู่ล่างสุดเสมอ */
+    justify-content: flex-start;
 }
 
 /* ส่วนที่ scroll ได้ต้องระบุเองในแต่ละ page */
@@ -144,6 +146,8 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     border-top: 1px solid #5a2210;
     display: flex;
     align-items: stretch;
+    /* ✅ ติดขอบล่างจอ รองรับ iPhone notch/home indicator */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .nav-tab {
     flex: 1;
@@ -151,22 +155,27 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 8px 4px;
+    /* ✅ ลด padding ให้บางเหมือน Facebook/Lazada */
+    padding: 6px 4px 4px;
     cursor: pointer;
     border: none;
     background: transparent;
     font-family: 'Noto Sans Lao', sans-serif;
     transition: opacity 0.15s ease;
-    gap: 3px;
+    gap: 2px;
     -webkit-tap-highlight-color: transparent;
+    /* ✅ ไม่ให้สูงเกินไป */
+    min-height: 48px;
+    max-height: 56px;
 }
 .nav-tab:active { opacity: 0.6; }
-.nav-tab svg { width: 24px; height: 24px; }
+.nav-tab svg { width: 22px; height: 22px; }
 .nav-tab span {
     font-size: 10px;
     font-weight: 700;
     color: #7a4030;
     transition: color 0.15s ease;
+    line-height: 1;
 }
 .nav-tab.active span { color: #f5a623; }
 .nav-tab.active svg path,

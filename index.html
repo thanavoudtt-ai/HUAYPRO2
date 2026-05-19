@@ -117,7 +117,7 @@
             </div>
         </div>
 
-        <div id="mainApp" style="display:none; flex:1; flex-direction:column; overflow:hidden; height:100%; max-height:100%;">
+        <div id="mainApp" style="display:none; flex:1; flex-direction:column; overflow:hidden; min-height:0;">
 
             <div class="navbar-top" style="flex-shrink:0; z-index:10;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -746,8 +746,9 @@
                     <button class="btn btn-success" onclick="submitSaveTimeLimits()" style="margin-top:14px;">💾 ບັນທຶກເວລາຄວບຄຸມ</button>
                 </div>
             </div>
-            <!-- Global Bottom Navigation -->
-            <div id="globalBottomNav" class="bottom-nav" style="display:none;">
+            <!-- Global Bottom Navigation — อยู่นอก mainApp เพื่อติดขอบล่างจอ -->
+        </div><!-- end mainApp -->
+        <div id="globalBottomNav" class="bottom-nav" style="display:none;">
                 <!-- Staff Nav -->
                 <div id="staffNav" style="display:flex; flex:1;">
                     <button class="nav-tab active" id="navTab_recorder" onclick="switchNavTab('recorder')">
@@ -812,7 +813,6 @@
                     </button>
                 </div>
             </div>
-        </div>
 
     <div id="lotteryInputModal" class="modal-backdrop" style="display: none;">
         <div class="card" style="width: 100%; max-width: 360px; background: #131926; border: 2px solid #1e293b; border-radius: 20px; padding: 20px; animation: fadeIn 0.25s ease;">
