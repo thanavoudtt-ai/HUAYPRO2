@@ -104,7 +104,7 @@ input:focus, select:focus { border-color: var(--ios-blue); }
     background: #220d07;
     border-top: 1px solid var(--border-color);
     padding: 10px 16px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom, 10px);
     display: flex;
     gap: 10px;
     align-items: center;
