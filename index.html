@@ -16,14 +16,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script>
-        // ✅ Set ความสูงจอจริงก่อน render ป้องกัน iPhone คำนวณ height ผิด
-        function setAppHeight() {
-            document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
-        }
-        setAppHeight();
-        window.addEventListener('resize', setAppHeight);
-    </script>
+    <script>(function(){function h(){document.documentElement.style.setProperty('--app-h',window.innerHeight+'px');}h();window.addEventListener('resize',h);})();</script>
 </head>
 <body>
     <div class="page-wrapper">
@@ -73,17 +66,17 @@
                     <div style="margin-bottom:8px;">
                         <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; padding-left:4px; font-weight:600;">🔒 ລະຫັດ PIN</div>
                         <div style="display:flex; gap:12px; justify-content:center;">
-                            <input type="password" id="pin0" maxlength="1" inputmode="numeric" pattern="[0-9]"
-                                style="width:60px; height:60px; text-align:center; font-size:28px; font-weight:900; border-radius:14px; border:2px solid var(--border-color); padding:0;"
+                            <input type="tel" id="pin0" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code"
+                                style="width:60px; height:60px; text-align:center; font-size:28px; font-weight:900; border-radius:14px; border:2px solid var(--border-color); padding:0; -webkit-text-security:disc;"
                                 oninput="onPinInput(this,0)" onkeydown="onPinKey(event,0)">
-                            <input type="password" id="pin1" maxlength="1" inputmode="numeric" pattern="[0-9]"
-                                style="width:60px; height:60px; text-align:center; font-size:28px; font-weight:900; border-radius:14px; border:2px solid var(--border-color); padding:0;"
+                            <input type="tel" id="pin1" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code"
+                                style="width:60px; height:60px; text-align:center; font-size:28px; font-weight:900; border-radius:14px; border:2px solid var(--border-color); padding:0; -webkit-text-security:disc;"
                                 oninput="onPinInput(this,1)" onkeydown="onPinKey(event,1)">
-                            <input type="password" id="pin2" maxlength="1" inputmode="numeric" pattern="[0-9]"
-                                style="width:60px; height:60px; text-align:center; font-size:28px; font-weight:900; border-radius:14px; border:2px solid var(--border-color); padding:0;"
+                            <input type="tel" id="pin2" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code"
+                                style="width:60px; height:60px; text-align:center; font-size:28px; font-weight:900; border-radius:14px; border:2px solid var(--border-color); padding:0; -webkit-text-security:disc;"
                                 oninput="onPinInput(this,2)" onkeydown="onPinKey(event,2)">
-                            <input type="password" id="pin3" maxlength="1" inputmode="numeric" pattern="[0-9]"
-                                style="width:60px; height:60px; text-align:center; font-size:28px; font-weight:900; border-radius:14px; border:2px solid var(--border-color); padding:0;"
+                            <input type="tel" id="pin3" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code"
+                                style="width:60px; height:60px; text-align:center; font-size:28px; font-weight:900; border-radius:14px; border:2px solid var(--border-color); padding:0; -webkit-text-security:disc;"
                                 oninput="onPinInput(this,3)" onkeydown="onPinKey(event,3)">
                         </div>
                     </div>
@@ -96,7 +89,7 @@
                     <!-- ຊື່ຜູ້ໃຊ້ -->
                     <div style="position:relative; margin-bottom:14px;">
                         <div style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:16px; opacity:0.6;">👑</div>
-                        <input type="text" id="adminຊື່ຜູ້ໃຊ້" placeholder="ຊື່ຜູ້ໃຊ້"
+                        <input type="text" id="adminUsername" placeholder="ຊື່ຜູ້ໃຊ້"
                             style="padding-left:44px; font-size:15px; font-weight:600; height:52px; border-radius:14px;"
                             onkeydown="if(event.key==='Enter') document.getElementById('adminPassword').focus()">
                     </div>
@@ -127,19 +120,31 @@
 
         <div id="mainApp" style="display:none; flex:1; flex-direction:column; overflow:hidden; min-height:0;">
 
-            <div class="navbar-top" style="flex-shrink:0; z-index:10;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="font-size: 24px;">👤</div>
-                    <div>
-                        <div id="userProfileName" style="font-weight: 700; font-size: 15px;">ພະນັກງານຂາຍ</div>
-                        <div id="userBadgeRole" class="badge">ພະນັກງານ</div>
+            <div class="navbar-top">
+                <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:0;">
+                    <div style="width:36px;height:36px;border-radius:50%;background:rgba(22,163,74,0.25);border:1.5px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(74,222,128,0.9)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    </div>
+                    <div style="min-width:0;">
+                        <div id="userProfileName" style="font-weight:700;font-size:14px;color:rgba(255,255,255,0.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">ພະນັກງານ</div>
+                        <div id="userBadgeRole" style="font-size:10px;color:rgba(74,222,128,0.5);font-weight:600;">Staff Agent</div>
                     </div>
                 </div>
-                <div style="text-align:center;">
-                    <div id="serverClock" style="font-size:18px; font-weight:900; color:var(--ios-green); font-variant-numeric:tabular-nums; letter-spacing:1px;">--:--:--</div>
-                    <div id="serverClockStatus" style="font-size:9px; color:var(--text-muted);">🔄 sync...</div>
+                <div style="text-align:center;flex-shrink:0;">
+                    <div id="serverClock" style="font-size:17px;font-weight:900;color:#4ade80;font-variant-numeric:tabular-nums;letter-spacing:0.5px;text-shadow:0 0 12px rgba(74,222,128,0.4);">--:--:--</div>
+                    <div id="serverClockStatus" style="font-size:9px;color:rgba(74,222,128,0.4);">🔄 sync...</div>
+                </div>
+                <div style="width:44px;display:flex;justify-content:flex-end;flex-shrink:0;">
+                    <button id="navBackBtn" onclick="navGoBack()"
+                        style="display:flex;opacity:0;pointer-events:none;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;width:36px;height:36px;cursor:pointer;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:opacity 0.15s,transform 0.1s;backdrop-filter:blur(8px);"
+                        onpointerdown="this.style.transform='scale(0.88)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'" aria-label="ກັບ">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(74,222,128,0.9)" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
                 </div>
             </div>
+
+            <!-- ✅ Page Content Area — คลุม pages ทั้งหมด ป้องกันซ้อนกัน -->
+            <div id="pageArea" style="flex:1; overflow:hidden; display:flex; flex-direction:column; min-height:0; position:relative;">
 
             <!-- ✅ Super ແອດມິນ Menu -->
             <div id="superAdminMenuPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
@@ -533,37 +538,59 @@
                 </div>
             </div>
 
-            <div id="menuPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
-                <div class="app-container" style="flex:1; justify-content:center;">
+            <div id="menuPage" style="display:none;flex-direction:column;flex:1;overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1;">
                     <div class="menu-grid">
-                        <div class="menu-item" id="menuSaleButtonBlock" onclick="goToRecorder()">
-                            <div class="menu-icon">📝</div>
-                            <div class="menu-title">ບັນທຶກລາຍການຫວຍ</div>
+                        <div class="menu-item c-green" id="menuSaleButtonBlock" onclick="goToRecorder()">
+                            <div class="menu-icon-wrap">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="5" y="3" width="14" height="18" rx="2.5" stroke="rgba(74,222,128,0.9)"/>
+                                    <line x1="8" y1="8" x2="16" y2="8" stroke="rgba(74,222,128,0.7)"/>
+                                    <line x1="8" y1="12" x2="16" y2="12" stroke="rgba(74,222,128,0.7)"/>
+                                    <line x1="8" y1="16" x2="12" y2="16" stroke="rgba(74,222,128,0.7)"/>
+                                    <circle cx="17.5" cy="17.5" r="3.5" fill="rgba(74,222,128,0.9)" stroke="none"/>
+                                    <line x1="17.5" y1="16.2" x2="17.5" y2="18.8" stroke="#061006" stroke-width="1.6"/>
+                                    <line x1="16.2" y1="17.5" x2="18.8" y2="17.5" stroke="#061006" stroke-width="1.6"/>
+                                </svg>
+                            </div>
+                            <div class="menu-title">ບັນທຶກ<br>ການຫວຍ</div>
                         </div>
-                        <div class="menu-item" onclick="goToDashboard()">
-                            <div class="menu-icon">📊</div>
-                            <div class="menu-title">ລາຍງານແດັດບອດ</div>
+                        <div class="menu-item c-blue" onclick="goToDashboard()">
+                            <div class="menu-icon-wrap">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+                                    <rect x="3" y="14" width="4" height="7" rx="1.2" fill="rgba(74,222,128,0.25)" stroke="none"/>
+                                    <rect x="10" y="10" width="4" height="11" rx="1.2" fill="rgba(74,222,128,0.45)" stroke="none"/>
+                                    <rect x="17" y="6" width="4" height="15" rx="1.2" fill="rgba(74,222,128,0.7)" stroke="none"/>
+                                    <polyline points="4,13 11,9 18,5" stroke="rgba(134,239,172,0.95)" stroke-width="2"/>
+                                    <circle cx="18" cy="5" r="2" fill="rgba(134,239,172,0.95)"/>
+                                </svg>
+                            </div>
+                            <div class="menu-title">ລາຍງານ<br>ຍອດຂາຍ</div>
                         </div>
-                        <div class="menu-item" onclick="goToCheckWin()">
-                            <div class="menu-icon">🔍</div>
-                            <div class="menu-title">ກວດຫວຍ</div>
+                        <div class="menu-item c-purple" onclick="goToCheckWin()">
+                            <div class="menu-icon-wrap">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+                                    <circle cx="11" cy="11" r="7" stroke="rgba(74,222,128,0.7)"/>
+                                    <circle cx="11" cy="11" r="3" fill="rgba(74,222,128,0.1)" stroke="rgba(74,222,128,0.4)"/>
+                                    <line x1="8.5" y1="11" x2="13.5" y2="11" stroke="rgba(74,222,128,0.9)" stroke-width="1.8"/>
+                                    <line x1="11" y1="8.5" x2="11" y2="13.5" stroke="rgba(74,222,128,0.9)" stroke-width="1.8"/>
+                                    <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="rgba(74,222,128,0.9)" stroke-width="2.2"/>
+                                </svg>
+                            </div>
+                            <div class="menu-title">ກວດ<br>ຫວຍ</div>
                         </div>
-                        <div class="menu-item" onclick="goToBillHistory()">
-                            <div class="menu-icon">🧾</div>
-                            <div class="menu-title">ປະຫວັດບິນຂອງຂ້ອຍ</div>
-                        </div>
-                        <div class="menu-item" onclick="goToColorMode()">
-                            <div class="menu-icon">🎨</div>
-                            <div class="menu-title">ໂໝດສີ</div>
-                        </div>
-                        <div class="menu-item" onclick="goToExportPage()">
-                            <div class="menu-icon">📤</div>
-                            <div class="menu-title">ສົ່ງອອກລາຍງານ</div>
+                        <div class="menu-item c-amber" onclick="goToBillHistory()">
+                            <div class="menu-icon-wrap">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+                                    <rect x="5" y="3" width="14" height="18" rx="2.5" stroke="rgba(74,222,128,0.7)" fill="rgba(74,222,128,0.06)"/>
+                                    <line x1="8" y1="8" x2="16" y2="8" stroke="rgba(74,222,128,0.6)"/>
+                                    <line x1="8" y1="12" x2="14" y2="12" stroke="rgba(74,222,128,0.6)"/>
+                                    <polyline points="11,16 14,19 20,13" stroke="rgba(74,222,128,0.9)" stroke-width="2" fill="none"/>
+                                </svg>
+                            </div>
+                            <div class="menu-title">ປະຫວັດ<br>ບິນ</div>
                         </div>
                     </div>
-                </div>
-                <div class="bottom-bar">
-                    <button class="bb-btn bb-logout" onclick="logout()">🚪 ອອກຈາກລະບົບ</button>
                 </div>
             </div>
 
@@ -754,72 +781,93 @@
                     <button class="btn btn-success" onclick="submitSaveTimeLimits()" style="margin-top:14px;">💾 ບັນທຶກເວລາຄວບຄຸມ</button>
                 </div>
             </div>
-            <!-- Global Bottom Navigation -->
-            <div id="globalBottomNav" class="bottom-nav" style="display:none;">
-                <!-- Staff Nav -->
-                <div id="staffNav" style="display:flex; flex:1;">
-                    <button class="nav-tab active" id="navTab_recorder" onclick="switchNavTab('recorder')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/>
-                            <circle cx="18" cy="18" r="4" fill="#f5a623" stroke="none"/><line x1="18" y1="16" x2="18" y2="20" stroke="#1a0806" stroke-width="1.5"/><line x1="16" y1="18" x2="20" y2="18" stroke="#1a0806" stroke-width="1.5"/>
-                        </svg>
-                        <span>ຂາຍ</span>
-                    </button>
-                    <button class="nav-tab" id="navTab_dashboard" onclick="switchNavTab('dashboard')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/>
-                            <polyline points="4,12 11,8 18,4" stroke-width="1.5"/>
-                        </svg>
-                        <span>ຍອດຂາຍ</span>
-                    </button>
-                    <button class="nav-tab" id="navTab_checkwin" onclick="switchNavTab('checkwin')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/>
-                        </svg>
-                        <span>ກວດຫວຍ</span>
-                    </button>
-                    <button class="nav-tab" id="navTab_history" onclick="switchNavTab('history')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
-                            <polyline points="12.5" /><polyline points="13,14 15,16 13,18" stroke-width="1.5"/>
-                        </svg>
-                        <span>ປະຫວັດ</span>
-                    </button>
-                    <button class="nav-tab" id="navTab_more" onclick="switchNavTab('more')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="19" r="1.2" fill="currentColor"/>
-                        </svg>
-                        <span>ເພີ່ມເຕີມ</span>
-                    </button>
-                </div>
-                <!-- Admin Nav -->
-                <div id="adminNav" style="display:none; flex:1;">
-                    <button class="nav-tab active" id="navTab_adminStaff" onclick="switchAdminTab('staff')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6"/><circle cx="17" cy="8" r="3"/><path d="M21 20c0-3.3-2.7-6-6-6"/>
-                        </svg>
-                        <span>ພະນັກງານ</span>
-                    </button>
-                    <button class="nav-tab" id="navTab_adminSales" onclick="switchAdminTab('sales')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/>
-                        </svg>
-                        <span>ຍອດຂາຍ</span>
-                    </button>
-                    <button class="nav-tab" id="navTab_adminCheck" onclick="switchAdminTab('check')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/>
-                        </svg>
-                        <span>ກວດຫວຍ</span>
-                    </button>
-                    <button class="nav-tab" id="navTab_adminSettings" onclick="switchAdminTab('settings')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>
-                        </svg>
-                        <span>ຕັ້ງຄ່າ</span>
-                    </button>
+            <!-- ✅ หน้า moreMenuPage -->
+            <div id="moreMenuPage" style="display:none; flex-direction:column; flex:1; overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1;">
+                    <div style="font-size:11px; font-weight:700; color:var(--text-muted); padding:2px 4px 8px; letter-spacing:0.5px;">ພະນັກງານ</div>
+                    <div class="more-item" onclick="goToRecorder()">
+                        <div class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ios-blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/><circle cx="18" cy="18" r="4" fill="var(--ios-blue)" stroke="none"/><line x1="18" y1="16" x2="18" y2="20" stroke="var(--bg-main)" stroke-width="1.5"/><line x1="16" y1="18" x2="20" y2="18" stroke="var(--bg-main)" stroke-width="1.5"/></svg></div>
+                        <div class="more-text"><div class="more-title">ບັນທຶກລາຍການຂາຍ</div><div class="more-sub">ກອກເລກ + ເງິນ + ບັນທຶກບິນ</div></div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                    <div class="more-item" onclick="goToDashboard()">
+                        <div class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ios-blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/><polyline points="4,12 11,8 18,4" stroke-width="1.5"/></svg></div>
+                        <div class="more-text"><div class="more-title">ຍອດຂາຍ</div><div class="more-sub">Dashboard + ກຣາຟ 7 ວັນ</div></div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                    <div class="more-item" onclick="goToCheckWin()">
+                        <div class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ios-blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/></svg></div>
+                        <div class="more-text"><div class="more-title">ກວດຫວຍ</div><div class="more-sub">ຄົ້ນຫາຄົນຖືກລາງວັນ</div></div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                    <div class="more-item" onclick="goToBillHistory()">
+                        <div class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ios-blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/><polyline points="13,14 15,16 13,18" stroke-width="1.5"/></svg></div>
+                        <div class="more-text"><div class="more-title">ປະຫວັດບິນ</div><div class="more-sub">ລາຍການບິນຍ້ອນຫຼັງ</div></div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                    <div class="more-item" onclick="goToExportPage()">
+                        <div class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ios-blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></div>
+                        <div class="more-text"><div class="more-title">ສົ່ງອອກລາຍງານ</div><div class="more-sub">Export Excel / PDF</div></div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                    <div style="border-top:1px solid var(--border-color); margin:12px 0 10px;"></div>
+                    <div style="font-size:11px; font-weight:700; color:var(--text-muted); padding:0 4px 8px; letter-spacing:0.5px;">ລະບົບ</div>
+                    <div class="more-item" onclick="goToColorMode()">
+                        <div class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ios-blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><circle cx="12" cy="12" r="3" fill="var(--ios-blue)"/></svg></div>
+                        <div class="more-text"><div class="more-title">ໂໝດສີ</div><div class="more-sub">Light / Dark / Auto</div></div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                    <div class="more-item more-danger" onclick="logout()">
+                        <div class="more-icon" style="background:rgba(224,80,48,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ios-pink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+                        <div class="more-text"><div class="more-title" style="color:var(--ios-pink);">ອອກຈາກລະບົບ</div><div class="more-sub">Logout</div></div>
+                    </div>
                 </div>
             </div>
+
+            <!-- ⚙️ Staff Settings Page — ✅ ย้ายเข้ามาใน mainApp ให้ layout ถูกต้อง -->
+            <div id="staffSettingsPage" style="display:none;flex-direction:column;flex:1;overflow:hidden;" class="hidden">
+                <div class="app-container" style="flex:1;">
+                    <div style="font-size:11px;font-weight:700;color:var(--text-muted);padding:2px 4px 12px;letter-spacing:0.8px;">ການຕັ້ງຄ່າ</div>
+                    <div class="settings-item" onclick="goToColorMode()">
+                        <div class="settings-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></div>
+                        <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text-main);">ໂໝດສີ</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Light / Dark / Auto</div></div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                    <div class="settings-item" onclick="goToExportPage()">
+                        <div class="settings-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></div>
+                        <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text-main);">Export ລາຍງານ</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Excel / PDF</div></div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                    <div style="height:1px;background:rgba(255,255,255,0.06);margin:6px 0 12px;"></div>
+                    <div class="settings-item" onclick="logout()" style="border-color:rgba(248,113,113,0.2);background:rgba(248,113,113,0.05);">
+                        <div class="settings-icon" style="background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.15);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ios-pink)" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+                        <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--ios-pink);">ອອກຈາກລະບົບ</div><div style="font-size:11px;color:rgba(248,113,113,0.5);margin-top:2px;">Logout</div></div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end pageArea -->
+
+        </div><!-- end mainApp -->
+
+        <!-- ✅ Staff Bottom Nav 4 Tab — Fixed -->
+        <div id="staffBottomNav" class="bottom-nav" style="display:none;">
+            <button class="nav-tab" id="navTab_menu" onclick="showMenu()">
+                <div class="nav-tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+                <span>ເມນູ</span>
+            </button>
+            <button class="nav-tab" id="navTab_recorder" onclick="goToRecorder()">
+                <div class="nav-tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></svg></div>
+                <span>ຂາຍ</span>
+            </button>
+            <button class="nav-tab" id="navTab_checkwin" onclick="goToCheckWin()">
+                <div class="nav-tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg></div>
+                <span>ກວດ</span>
+            </button>
+            <button class="nav-tab" id="navTab_settings" onclick="goToStaffSettings()">
+                <div class="nav-tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+                <span>ຕັ້ງຄ່າ</span>
+            </button>
         </div>
 
     <div id="lotteryInputModal" class="modal-backdrop" style="display: none;">
@@ -842,22 +890,30 @@
 
             <div style="display: none; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;" id="popDoubleAmountSection">
                 <div class="input-group" style="margin:0;">
-                    <label style="color:var(--ios-blue); font-weight:bold;">ຈຳນວນເງິນ (ເທິງ)</label>
-                    <input type="text" id="popHuayAmtTop" placeholder="ເງິນເທິງ" inputmode="numeric" style="font-size:18px; font-weight:bold; text-align:center; border: 1px solid rgba(0,122,255,0.4);">
+                    <label id="popTopLabel" style="color:var(--ios-blue); font-weight:bold;">ຈຳນວນເງິນ (ເທິງ)</label>
+                    <input type="text" id="popHuayAmtTop" placeholder="ເງິນເທິງ" inputmode="numeric"
+                        style="font-size:18px; font-weight:bold; text-align:center; border: 2px solid rgba(74,222,128,0.6); transition:border-color 0.15s;"
+                        onfocus="_popupLastFocused='top'; this.style.borderColor='rgba(74,222,128,1)'; document.getElementById('popHuayAmtBottom').style.borderColor='rgba(74,222,128,0.2)'; document.getElementById('popTopLabel').style.opacity='1'; document.getElementById('popBotLabel').style.opacity='0.5';"
+                        onblur="this.style.borderColor='rgba(74,222,128,0.4)';">
                 </div>
                 <div class="input-group" style="margin:0;">
-                    <label style="color:var(--ios-pink); font-weight:bold;">จำนวนເງິນ (ລຸ່ມ)</label>
-                    <input type="text" id="popHuayAmtBottom" placeholder="ເງິນລຸ່ມ" inputmode="numeric" style="font-size:18px; font-weight:bold; text-align:center; border: 1px solid rgba(255,45,85,0.4);">
+                    <label id="popBotLabel" style="color:var(--ios-blue); font-weight:bold; opacity:0.5;">ຈຳນວນເງິນ (ລຸ່ມ)</label>
+                    <input type="text" id="popHuayAmtBottom" placeholder="ເງິນລຸ່ມ" inputmode="numeric"
+                        style="font-size:18px; font-weight:bold; text-align:center; border: 2px solid rgba(74,222,128,0.2); transition:border-color 0.15s;"
+                        onfocus="_popupLastFocused='bot'; this.style.borderColor='rgba(74,222,128,1)'; document.getElementById('popHuayAmtTop').style.borderColor='rgba(74,222,128,0.2)'; document.getElementById('popBotLabel').style.opacity='1'; document.getElementById('popTopLabel').style.opacity='0.5';"
+                        onblur="this.style.borderColor='rgba(74,222,128,0.4)';">
                 </div>
             </div>
 
-            <div class="shortcut-amt-grid" style="margin-top:14px; margin-bottom:18px;">
+            <div class="shortcut-amt-grid" style="margin-top:14px; margin-bottom:4px;">
                 <button class="btn-amt-chip" onclick="addPopupQuickAmt(1000)">1K</button>
                 <button class="btn-amt-chip" onclick="addPopupQuickAmt(5000)">5K</button>
                 <button class="btn-amt-chip" onclick="addPopupQuickAmt(10000)">10K</button>
                 <button class="btn-amt-chip" onclick="addPopupQuickAmt(20000)">20K</button>
                 <button class="btn-amt-chip" onclick="addPopupQuickAmt(50000)">50K</button>
             </div>
+            <!-- hint บอก user ว่าชิปบวกฝั่งไหน -->
+            <div id="popChipHint" style="font-size:11px; color:rgba(74,222,128,0.55); text-align:center; margin-bottom:14px; min-height:16px;"></div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <button class="btn btn-secondary" onclick="closeLotteryInputModal()" style="font-weight:bold;">❌ ຍົກເລີກ</button>

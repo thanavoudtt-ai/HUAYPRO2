@@ -1,9 +1,11 @@
+(function(){function h(){document.documentElement.style.setProperty('--app-h',window.innerHeight+'px');}h();window.addEventListener('resize',h);})();
+
 const BACKEND_API_URL = "https://script.google.com/macros/s/AKfycbxdJZA_-N-U-9jXPxA0lycEnNkJglioE8eP85WHmOglSKYhX_RKIwY_87IuMb-w2van/exec";
 
 let currentUser = {};
 let _sessionToken = null; // token สำหรับ single-session lock
 let currentBillItems = [];
-let currentHuayType = 'ลาว';
+let currentHuayType = 'ລາວ'; // ✅ แก้ไข: ใช้ภาษาลาวให้ตรงกับ HTML segment-btn
 let popupSelectedPosition = 'บน'; 
 let serverTimeLimits = { lao: "20:15", thai: "15:15" };
 let isAdminLoginMode = false;
@@ -21,35 +23,35 @@ document.addEventListener("DOMContentLoaded", function() {
     injectMenuIcons();
 });
 
-// ========== 🎨 SVG MENU ICONS ==========
+// ========== 🎨 SVG MENU ICONS — Green Theme ==========
 const MENU_ICONS = {
     // Staff menu
-    '📝': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="5" y="4" width="22" height="26" rx="4" fill="#f5a623" opacity="0.15" stroke="#f5a623" stroke-width="1.5"/><line x1="9" y1="11" x2="23" y2="11" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="16" x2="23" y2="16" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="21" x2="17" y2="21" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#f5a623"/><line x1="24" y1="21.5" x2="24" y2="26.5" stroke="#1a0806" stroke-width="1.5" stroke-linecap="round"/><line x1="21.5" y1="24" x2="26.5" y2="24" stroke="#1a0806" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    '📝': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="5" y="4" width="22" height="26" rx="4" fill="#4ade80" opacity="0.12" stroke="#4ade80" stroke-width="1.5"/><line x1="9" y1="11" x2="23" y2="11" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="16" x2="23" y2="16" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="21" x2="17" y2="21" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#16a34a"/><line x1="24" y1="21.5" x2="24" y2="26.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><line x1="21.5" y1="24" x2="26.5" y2="24" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>`,
 
-    '📊': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="4" y="18" width="5" height="10" rx="2" fill="#25a04f"/><rect x="11" y="13" width="5" height="15" rx="2" fill="#25a04f" opacity="0.7"/><rect x="18" y="8" width="5" height="20" rx="2" fill="#25a04f"/><polyline points="6,17 13,12 20,7 27,10" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="27" cy="10" r="2" fill="#f5a623"/></svg>`,
+    '📊': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="4" y="18" width="5" height="10" rx="2" fill="#4ade80" opacity="0.5"/><rect x="11" y="13" width="5" height="15" rx="2" fill="#4ade80" opacity="0.7"/><rect x="18" y="8" width="5" height="20" rx="2" fill="#4ade80"/><polyline points="6,17 13,12 20,7 27,10" stroke="#86efac" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="27" cy="10" r="2" fill="#86efac"/></svg>`,
 
-    '🔍': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="14" cy="14" r="8" stroke="#c4883a" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="4" fill="#c4883a" opacity="0.2"/><line x1="20" y1="20" x2="27" y2="27" stroke="#c4883a" stroke-width="2" stroke-linecap="round"/><line x1="11" y1="14" x2="17" y2="14" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="14" y1="11" x2="14" y2="17" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    '🔍': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="14" cy="14" r="8" stroke="#4ade80" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="4" fill="#4ade80" opacity="0.15"/><line x1="20" y1="20" x2="27" y2="27" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/><line x1="11" y1="14" x2="17" y2="14" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><line x1="14" y1="11" x2="14" y2="17" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/></svg>`,
 
-    '🧾': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="6" y="5" width="20" height="24" rx="3" fill="#f5a623" opacity="0.1" stroke="#f5a623" stroke-width="1.5"/><line x1="10" y1="11" x2="22" y2="11" stroke="#f5a623" stroke-width="1.2" stroke-linecap="round"/><line x1="10" y1="15" x2="22" y2="15" stroke="#f5a623" stroke-width="1.2" stroke-linecap="round"/><line x1="10" y1="19" x2="17" y2="19" stroke="#f5a623" stroke-width="1.2" stroke-linecap="round"/><polyline points="17,22 21,26 28,18" stroke="#25a04f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
+    '🧾': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="6" y="5" width="20" height="24" rx="3" fill="#4ade80" opacity="0.08" stroke="#4ade80" stroke-width="1.5"/><line x1="10" y1="11" x2="22" y2="11" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/><line x1="10" y1="15" x2="22" y2="15" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/><line x1="10" y1="19" x2="17" y2="19" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/><polyline points="17,22 21,26 28,18" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
 
-    '🎨': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="10" stroke="#c4883a" stroke-width="1.5" fill="none"/><path d="M16 8 A8 8 0 0 1 24 16" stroke="#f5a623" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="16" cy="16" r="2.5" fill="#f5a623"/><line x1="16" y1="6" x2="16" y2="4" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="28" x2="16" y2="26" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="6" y1="16" x2="4" y2="16" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="28" y1="16" x2="26" y2="16" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><rect x="10" y="22" width="12" height="4" rx="2" fill="#f5a623" opacity="0.2" stroke="#f5a623" stroke-width="1"/></svg>`,
+    '🎨': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="10" stroke="#4ade80" stroke-width="1.5" fill="none"/><path d="M16 8 A8 8 0 0 1 24 16" stroke="#86efac" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="16" cy="16" r="2.5" fill="#4ade80"/><line x1="16" y1="6" x2="16" y2="4" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="28" x2="16" y2="26" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><line x1="6" y1="16" x2="4" y2="16" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><line x1="28" y1="16" x2="26" y2="16" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><rect x="10" y="22" width="12" height="4" rx="2" fill="#4ade80" opacity="0.15" stroke="#4ade80" stroke-width="1"/></svg>`,
 
-    '📤': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="6" y="8" width="20" height="16" rx="3" fill="#25a04f" opacity="0.15" stroke="#25a04f" stroke-width="1.5"/><line x1="10" y1="13" x2="22" y2="13" stroke="#25a04f" stroke-width="1.2" stroke-linecap="round"/><line x1="10" y1="17" x2="18" y2="17" stroke="#25a04f" stroke-width="1.2" stroke-linecap="round"/><path d="M20 22 L20 28 M17 25 L20 28 L23 25" stroke="#25a04f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
+    '📤': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="6" y="8" width="20" height="16" rx="3" fill="#4ade80" opacity="0.1" stroke="#4ade80" stroke-width="1.5"/><line x1="10" y1="13" x2="22" y2="13" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/><line x1="10" y1="17" x2="18" y2="17" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/><path d="M20 22 L20 28 M17 25 L20 28 L23 25" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
 
     // Admin menu
-    '👥': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="12" cy="11" r="4" stroke="#f5a623" stroke-width="1.5" fill="none"/><path d="M4 26c0-4.4 3.6-8 8-8" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="21" cy="11" r="4" stroke="#c4883a" stroke-width="1.5" fill="none"/><path d="M21 18c4.4 0 8 3.6 8 8" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`,
+    '👥': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="12" cy="11" r="4" stroke="#4ade80" stroke-width="1.5" fill="none"/><path d="M4 26c0-4.4 3.6-8 8-8" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="21" cy="11" r="4" stroke="#86efac" stroke-width="1.5" fill="none"/><path d="M21 18c4.4 0 8 3.6 8 8" stroke="#86efac" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`,
 
-    '📋': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="6" y="6" width="20" height="22" rx="3" fill="#c4883a" opacity="0.12" stroke="#c4883a" stroke-width="1.5"/><rect x="11" y="4" width="10" height="5" rx="2" fill="#c4883a" stroke="#c4883a" stroke-width="1"/><line x1="10" y1="14" x2="22" y2="14" stroke="#c4883a" stroke-width="1.3" stroke-linecap="round"/><line x1="10" y1="18" x2="22" y2="18" stroke="#c4883a" stroke-width="1.3" stroke-linecap="round"/><line x1="10" y1="22" x2="16" y2="22" stroke="#c4883a" stroke-width="1.3" stroke-linecap="round"/></svg>`,
+    '📋': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="6" y="6" width="20" height="22" rx="3" fill="#4ade80" opacity="0.08" stroke="#4ade80" stroke-width="1.5"/><rect x="11" y="4" width="10" height="5" rx="2" fill="#16a34a" stroke="#4ade80" stroke-width="1"/><line x1="10" y1="14" x2="22" y2="14" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/><line x1="10" y1="18" x2="22" y2="18" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/><line x1="10" y1="22" x2="16" y2="22" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/></svg>`,
 
-    '⚙️': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="4" stroke="#f5a623" stroke-width="1.5" fill="none"/><path d="M16 4v3M16 25v3M4 16h3M25 16h3M7.5 7.5l2.1 2.1M22.4 22.4l2.1 2.1M7.5 24.5l2.1-2.1M22.4 9.6l2.1-2.1" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="16" r="8" stroke="#f5a623" stroke-width="1" stroke-dasharray="2 3" fill="none" opacity="0.4"/></svg>`,
+    '⚙️': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="4" stroke="#4ade80" stroke-width="1.5" fill="none"/><path d="M16 4v3M16 25v3M4 16h3M25 16h3M7.5 7.5l2.1 2.1M22.4 22.4l2.1 2.1M7.5 24.5l2.1-2.1M22.4 9.6l2.1-2.1" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="16" r="8" stroke="#4ade80" stroke-width="1" stroke-dasharray="2 3" fill="none" opacity="0.35"/></svg>`,
 
-    '💰': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" stroke="#f5a623" stroke-width="1.5" fill="none"/><circle cx="16" cy="16" r="7" fill="#f5a623" opacity="0.1"/><text x="16" y="21" text-anchor="middle" font-size="13" font-weight="700" fill="#f5a623" font-family="sans-serif">₭</text></svg>`,
+    '💰': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" stroke="#4ade80" stroke-width="1.5" fill="none"/><circle cx="16" cy="16" r="7" fill="#4ade80" opacity="0.1"/><text x="16" y="21" text-anchor="middle" font-size="13" font-weight="700" fill="#4ade80" font-family="sans-serif">₭</text></svg>`,
 
-    '⏰': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="17" r="10" stroke="#c4883a" stroke-width="1.5" fill="none"/><line x1="16" y1="17" x2="16" y2="11" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="17" x2="21" y2="17" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="17" r="1.5" fill="#f5a623"/><line x1="12" y1="5" x2="10" y2="7" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="5" x2="22" y2="7" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    '⏰': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="17" r="10" stroke="#4ade80" stroke-width="1.5" fill="none"/><line x1="16" y1="17" x2="16" y2="11" stroke="#86efac" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="17" x2="21" y2="17" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="17" r="1.5" fill="#4ade80"/><line x1="12" y1="5" x2="10" y2="7" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="5" x2="22" y2="7" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/></svg>`,
 
-    '🔐': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="8" y="15" width="16" height="13" rx="3" fill="#e05030" opacity="0.15" stroke="#e05030" stroke-width="1.5"/><path d="M11 15v-4a5 5 0 0 1 10 0v4" stroke="#e05030" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="21" r="2" fill="#e05030"/><line x1="16" y1="23" x2="16" y2="25" stroke="#e05030" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    '🔐': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><rect x="8" y="15" width="16" height="13" rx="3" fill="#f87171" opacity="0.12" stroke="#f87171" stroke-width="1.5"/><path d="M11 15v-4a5 5 0 0 1 10 0v4" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="21" r="2" fill="#f87171"/><line x1="16" y1="23" x2="16" y2="25" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/></svg>`,
 
-    '🏆': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><path d="M10 6h12v10a6 6 0 0 1-12 0V6z" fill="#f5a623" opacity="0.15" stroke="#f5a623" stroke-width="1.5"/><path d="M10 10H7a3 3 0 0 0 3 6" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round" fill="none"/><path d="M22 10h3a3 3 0 0 1-3 6" stroke="#c4883a" stroke-width="1.5" stroke-linecap="round" fill="none"/><line x1="16" y1="22" x2="16" y2="26" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="26" x2="21" y2="26" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/></svg>`,
+    '🏆': `<svg width="38" height="38" viewBox="0 0 32 32" fill="none"><path d="M10 6h12v10a6 6 0 0 1-12 0V6z" fill="#4ade80" opacity="0.12" stroke="#4ade80" stroke-width="1.5"/><path d="M10 10H7a3 3 0 0 0 3 6" stroke="#86efac" stroke-width="1.5" stroke-linecap="round" fill="none"/><path d="M22 10h3a3 3 0 0 1-3 6" stroke="#86efac" stroke-width="1.5" stroke-linecap="round" fill="none"/><line x1="16" y1="22" x2="16" y2="26" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="26" x2="21" y2="26" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/></svg>`,
 };
 
 function injectMenuIcons() {
@@ -110,7 +112,7 @@ function handleLogin() {
     const userSelect = document.getElementById('loginUser'); // ตอนนี้เป็นช่องพิมพ์แล้ว
     const pinInput = document.getElementById('loginPin');
     const adminPassInput = document.getElementById('adminPassword');
-    const adminUserInput = document.getElementById('adminUsername');
+    const adminUserInput = document.getElementById('adminUsername') || document.getElementById('adminຊື່ຜູ້ໃຊ້');
 
     let payload = { action: "login" };
 
@@ -195,20 +197,34 @@ function handleLogin() {
 
 // PIN Box functions
 function focusPinBox(index) {
-    const el = document.getElementById('pin' + index);
-    if(el) el.focus();
+    var el = document.getElementById('pin' + index);
+    if(!el) return;
+    // ✅ setTimeout ป้องกัน iOS keyboard หายระหว่าง focus
+    setTimeout(function(){ try{ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }catch(e){} }, 30);
 }
 
 function onPinInput(el, index) {
-    // รับเฉพาะตัวเลข
-    el.value = el.value.replace(/[^0-9]/g, '');
+    var raw = el.value.replace(/[^0-9]/g, '');
+    // ✅ รองรับ paste หลายตัวพร้อมกัน
+    if(raw.length > 1) {
+        for(var i = 0; i < raw.length && (index + i) < 4; i++) {
+            var box = document.getElementById('pin' + (index + i));
+            if(box) {
+                box.value = raw[i];
+                box.style.borderColor = 'var(--ios-blue)';
+            }
+        }
+        var next = Math.min(index + raw.length, 3);
+        focusPinBox(next);
+        syncPinValue();
+        return;
+    }
+    el.value = raw;
+    el.style.borderColor = el.value ? 'var(--ios-blue)' : 'var(--border-color)';
     if(el.value.length === 1 && index < 3) {
         focusPinBox(index + 1);
     }
-    // sync loginPin hidden input
     syncPinValue();
-    // highlight border
-    el.style.borderColor = el.value ? 'var(--ios-blue)' : 'var(--border-color)';
 }
 
 function onPinKey(event, index) {
@@ -391,11 +407,11 @@ function renderBillHistory(bills) {
             </div>
             <div style="display:flex; gap:8px;">
                 <button onclick="openBillSlipFromHistory('${b.billId}')"
-                    style="flex:1; background:var(--ios-blue); color:#1a0806; border:none; border-radius:10px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                    style="flex:1; background:linear-gradient(135deg,#16a34a,#15803d); color:#fff; border:none; border-radius:10px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
                     🧾 ເບິ່ງໃບບິນ
                 </button>
                 ${!isCanceled ? `<button onclick="confirmCancelBill('${b.billId}')"
-                    style="flex:1; background:rgba(224,80,48,0.15); color:var(--ios-pink); border:1px solid rgba(224,80,48,0.3); border-radius:10px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                    style="flex:1; background:rgba(248,113,113,0.12); color:#f87171; border:1px solid rgba(248,113,113,0.3); border-radius:10px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;">
                     🔥 ຍົກເລີກບິນ
                 </button>` : ''}
             </div>
@@ -456,8 +472,12 @@ function processSubmitFinalSale() {
 // สลับประเภทหวย ลาว/ไทย
 function setHuayType(type) {
     currentHuayType = type;
-    document.getElementById('typeLao').classList.toggle('active', type === 'ลาว');
-    document.getElementById('typeThai').classList.toggle('active', type === 'ไทย');
+    // ✅ แก้ไข: ใช้ค่าภาษาลาวให้ตรงกับที่ HTML ส่งมา ('ລາວ'/'ໄທ')
+    document.getElementById('typeLao').classList.toggle('active', type === 'ລາວ');
+    document.getElementById('typeThai').classList.toggle('active', type === 'ໄທ');
+    // แสดง/ซ่อนช่อง amount ตามประเภท (ไทย 2 ตัวต้องรอ popup)
+    const mainAmt = document.getElementById('mainAmountInputSection');
+    if(mainAmt) mainAmt.style.display = 'block';
 }
 
 // เมื่อพิมพ์เลข — ล้างช่องเงินให้พิมพ์ใหม่
@@ -487,7 +507,7 @@ function addItemsToCurrentBillDirect() {
         return;
     }
 
-    const isThaiTwoDigit = (currentHuayType === 'ไทย' && num.length === 2);
+    const isThaiTwoDigit = ((currentHuayType === 'ไทย' || currentHuayType === 'ໄທ') && num.length === 2);
 
     if(isThaiTwoDigit) {
         // เปิด popup ถามบน/ล่าง/บน+ล่าง
@@ -498,7 +518,9 @@ function addItemsToCurrentBillDirect() {
     // ลาว 2ตัว, ลาว 3ตัว, ไทย 3ตัว → ไม่มีบน/ล่าง เพิ่มตรงได้เลย
     if(amt <= 0) { alert("⚠️ กรุณากรอกจำนวนเงิน"); return; }
 
-    const typeLabel = currentHuayType + '-' + num.length + 'ตัว';
+    // ✅ แก้ไข: แปลงค่าลาว→ไทย สำหรับ typeLabel ให้อ่านง่าย
+    const huayTypeTh = (currentHuayType === 'ໄທ') ? 'ไทย' : (currentHuayType === 'ລາວ') ? 'ลาว' : currentHuayType;
+    const typeLabel = huayTypeTh + '-' + num.length + 'ตัว';
     currentBillItems.unshift({ num, position: 'รวม', price: amt, type: typeLabel });
 
     renderBillTable();
@@ -507,74 +529,13 @@ function addItemsToCurrentBillDirect() {
     document.getElementById('huayNum').focus();
 }
 
-// 🎯 Popup สำหรับหวยไทย 2 ຕົວ
+// 🎯 Popup สำหรับหวยไทย 2 ຕົວ — ✅ แก้ไข: ใช้ lotteryInputModal ที่มีใน HTML แทน
 function openThaiTwoDigitPopup(num) {
-    // ลบ popup เก่าถ้ามี
-    const old = document.getElementById('thai2PopupModal');
-    if(old) old.remove();
-
-    const modal = document.createElement('div');
-    modal.id = 'thai2PopupModal';
-    modal.className = 'modal-backdrop';
-    modal.style.zIndex = '1001';
-    modal.innerHTML = `
-        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:20px; padding:20px; width:100%; max-width:340px;">
-            
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
-                <span style="font-size:16px; font-weight:700; color:#fff;">🎯 หวยไทย 2 ຕົວ: <strong style="color:var(--ios-blue); font-size:20px;">${num}</strong></span>
-                <button onclick="closeThaiTwoPopup()" style="background:rgba(255,69,58,0.2); color:var(--ios-pink); border:none; border-radius:8px; padding:4px 10px; font-size:13px; cursor:pointer;">✕</button>
-            </div>
-
-            <!-- เลือกตำแหน่ง -->
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
-                <button id="thai2BtnTop" onclick="setThai2Pos('บน')" 
-                    style="background:var(--ios-blue); color:#fff; border:none; border-radius:10px; padding:10px; font-size:14px; font-weight:700; cursor:pointer;">บน</button>
-                <button id="thai2BtnBot" onclick="setThai2Pos('ล่าง')"
-                    style="background:#1c2333; color:var(--text-muted); border:1px solid var(--border-color); border-radius:10px; padding:10px; font-size:14px; font-weight:700; cursor:pointer;">ล่าง</button>
-                <button id="thai2BtnBoth" onclick="setThai2Pos('บน+ล่าง')"
-                    style="background:#1c2333; color:var(--text-muted); border:1px solid var(--border-color); border-radius:10px; padding:10px; font-size:14px; font-weight:700; cursor:pointer;">บน+ล่าง</button>
-            </div>
-
-            <!-- ช่องเงิน บน -->
-            <div id="thai2TopSection" style="margin-bottom:12px;">
-                <label style="font-size:12px; font-weight:600; color:var(--ios-blue); display:block; margin-bottom:6px;">💰 จำนวนเงิน [บน] (₭)</label>
-                <input type="number" id="thai2AmtTop" placeholder="ระบุยอดเงิน" inputmode="numeric"
-                    style="width:100%; background:#1c2333; border:2px solid var(--ios-blue); border-radius:10px; padding:12px; color:#fff; font-size:18px; font-weight:700; text-align:center;">
-                <div style="display:flex; gap:6px; margin-top:6px;">
-                    <button onclick="addThai2Amt('top',1000)" class="btn-amt-chip">1K</button>
-                    <button onclick="addThai2Amt('top',5000)" class="btn-amt-chip">5K</button>
-                    <button onclick="addThai2Amt('top',10000)" class="btn-amt-chip">10K</button>
-                    <button onclick="addThai2Amt('top',20000)" class="btn-amt-chip">20K</button>
-                    <button onclick="addThai2Amt('top',50000)" class="btn-amt-chip">50K</button>
-                </div>
-            </div>
-
-            <!-- ช่องเงิน ล่าง -->
-            <div id="thai2BotSection" style="margin-bottom:16px; display:none;">
-                <label style="font-size:12px; font-weight:600; color:var(--ios-pink); display:block; margin-bottom:6px;">💰 จำนวนเงิน [ล่าง] (₭)</label>
-                <input type="number" id="thai2AmtBot" placeholder="ระบุยอดเงิน" inputmode="numeric"
-                    style="width:100%; background:#1c2333; border:2px solid var(--ios-pink); border-radius:10px; padding:12px; color:#fff; font-size:18px; font-weight:700; text-align:center;">
-                <div style="display:flex; gap:6px; margin-top:6px;">
-                    <button onclick="addThai2Amt('bot',1000)" class="btn-amt-chip">1K</button>
-                    <button onclick="addThai2Amt('bot',5000)" class="btn-amt-chip">5K</button>
-                    <button onclick="addThai2Amt('bot',10000)" class="btn-amt-chip">10K</button>
-                    <button onclick="addThai2Amt('bot',20000)" class="btn-amt-chip">20K</button>
-                    <button onclick="addThai2Amt('bot',50000)" class="btn-amt-chip">50K</button>
-                </div>
-            </div>
-
-            <button onclick="confirmThai2Add('${num}')" 
-                style="width:100%; background:var(--ios-green); color:#fff; border:none; border-radius:12px; padding:14px; font-size:16px; font-weight:700; cursor:pointer;">
-                ➕ ເພີ່ມລາຍການລົງບິນ
-            </button>
-        </div>`;
-    document.body.appendChild(modal);
-    window._thai2Pos = 'บน'; // default
+    openLotteryInputModal(num);
 }
 
 function closeThaiTwoPopup() {
-    const m = document.getElementById('thai2PopupModal');
-    if(m) m.remove();
+    closeLotteryInputModal();
 }
 
 function setThai2Pos(pos) {
@@ -1122,7 +1083,8 @@ function loadDashboardData() {
 
         // Super admin: แสดงยอดแยกພະນັກງານ + หน้าตั้งค่าອັດຕາຈ່າຍ
         if(currentUser.role === 'superadmin') {
-            const sec = document.getElementById('superAdminStaffSection');
+            // ✅ แก้ไข: ลอง ID ทั้งสองรูปแบบ (ลาว และ ไทย)
+            const sec = document.getElementById('superAdminStaffSection') || document.getElementById('superແອດມິນStaffSection');
             const container = document.getElementById('staffTotalListContainer');
             const rateCard = document.getElementById('payoutSettingsCard');
             if(sec) sec.classList.remove('hidden');
@@ -1211,9 +1173,9 @@ function executeCancelBill(billId) {
 }
 
 function runWinnerCheck() {
-    const winNum = document.getElementById('searchWinNum').value.trim();       // ✅ ID จริงใน HTML
-    const posFilter = document.getElementById('searchPosition').value;          // ✅ ID จริงใน HTML
-    const targetDateStr = document.getElementById('searchDate').value;          // ✅ ID จริงใน HTML
+    const winNum = document.getElementById('searchWinNum').value.trim();
+    const posFilter = document.getElementById('searchPosition').value;
+    const targetDateStr = document.getElementById('searchDate').value;
     
     if(!winNum || !targetDateStr) { alert("กรุณาใส่เลขรางวัลและเลือกวันที่ต้องการตรวจບິນผู้โชคดี"); return; }
     
@@ -1223,6 +1185,9 @@ function runWinnerCheck() {
     highlightWinningNum = winNum;
     highlightPositionFilter = posFilter;
     
+    // ✅ แก้ไข: แปลงค่าภาษาลาว→ไทย เพื่อให้ backend match กับข้อมูลที่บันทึกไว้
+    const posFilterMapped = _mapPositionLaoToThai(posFilter);
+    
     showLoading(true);
     fetch(BACKEND_API_URL, {
         method: "POST",
@@ -1231,7 +1196,7 @@ function runWinnerCheck() {
         body: JSON.stringify({
             action: "checkWinners",
             winningNum: winNum,
-            positionFilter: posFilter,
+            positionFilter: posFilterMapped,
             targetDate: formattedDate,
             username: currentUser.username,
             role: currentUser.role
@@ -1593,8 +1558,11 @@ function logout() {
     const loginBox = document.getElementById('loginContainer');
     if(loginBox) { loginBox.style.display = 'flex'; loginBox.classList.remove('hidden'); }
     clearPinBoxes();
+    // ✅ แก้ไข Bug 9: reset ช่อง loginUser (text input) และ focus
     const loginUser = document.getElementById('loginUser');
-    if(loginUser) loginUser.value = '';
+    if(loginUser) { loginUser.value = ''; setTimeout(() => loginUser.focus(), 100); }
+    // reset admin mode
+    if(isAdminLoginMode) toggleLoginMode();
 }
 
 let statusModalTimer = null; let statusModalCallback = null;
@@ -1602,13 +1570,21 @@ let statusModalTimer = null; let statusModalCallback = null;
 function showStatusModal(title, message, isSuccess, callback) {
     if(statusModalTimer) clearTimeout(statusModalTimer);
 
-    // ใช้แค่ title สั้นๆ — ไม่แสดง message ยาว
-    const shortTitle = isSuccess ? 'ສຳເລັດ' :
-        (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('ໝົດເວລາ') || title.includes('ใกล้') || title.includes('ล็อก') || title.includes('ปลดล็อก'))
-            ? title.replace(/[💎💥⚠️🔒🔓✅❌]/g,'').trim()
-            : 'ไม่ສຳເລັດ';
+    // ✅ แสดง title และ message จริงๆ
+    const cleanTitle = title.replace(/[💎💥⚠️🔒🔓✅❌🔑]/g,'').trim();
+    const titleEl = document.getElementById('statusTitle');
+    if(titleEl) titleEl.innerText = cleanTitle;
 
-    document.getElementById('statusTitle').innerText = shortTitle;
+    // เพิ่ม/อัปเดต message element
+    let msgEl = document.getElementById('statusMsg');
+    if(!msgEl) {
+        msgEl = document.createElement('p');
+        msgEl.id = 'statusMsg';
+        msgEl.style.cssText = 'font-size:13px;color:var(--text-muted);margin-top:8px;line-height:1.5;white-space:pre-line;';
+        if(titleEl) titleEl.parentNode.insertBefore(msgEl, titleEl.nextSibling);
+    }
+    if(msgEl) msgEl.innerText = message || '';
+
     statusModalCallback = callback;
 
     // เลือก SVG
@@ -1642,7 +1618,6 @@ function showStatusModal(title, message, isSuccess, callback) {
         }));
     }
 
-    const titleEl = document.getElementById('statusTitle');
     const isWarn = !isSuccess && (title.includes('⚠️') || title.includes('แจ้งเตือน') || title.includes('ໝົດເວລາ') || title.includes('ใกล้') || title.includes('ล็อก') || title.includes('ปลดล็อก'));
 
     if(isSuccess) {
@@ -1672,7 +1647,7 @@ function closeStatusModal() {
 }
 
 function hideAllPages() { 
-    ['menuPage','recorderWrapper','dashboardPage','adminSettingsPage',
+    ['menuPage','moreMenuPage','staffSettingsPage','recorderWrapper','dashboardPage','adminSettingsPage',
      'superAdminMenuPage','staffPage','timeLimitPage','checkWinPage',
      'billHistoryPage','checkWinStaffPage','payoutPage','settingsPage',
      'payoutSettingPage','changePassPage','colorModePage','exportPage',
@@ -1772,37 +1747,79 @@ function goToSubSetting(pageId) {
     if(pageId === 'timeLimitPage')     loadTimeLimits();
 }
 
-// helper แสดง page แบบ flex
+// helper แสดง page — ซ่อน pages อื่นทั้งหมดก่อนแสดง page นี้
 function showPage(id) {
     const el = document.getElementById(id);
     if(el) { 
         el.classList.remove('hidden'); 
         el.style.display = 'flex';
-        el.style.height = '100%';
+        el.style.flex = '1';
+        el.style.height = '';
+        el.style.minHeight = '0';
+        el.style.overflow = 'hidden';
     }
 }
-
-function showMenu() { 
+function setActiveStaffTab(tabId) {
+    ['navTab_menu','navTab_recorder','navTab_checkwin','navTab_settings'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.classList.remove('active');
+    });
+    var el=document.getElementById(tabId); if(el) el.classList.add('active');
+}
+function goToStaffSettings() {
     hideAllPages();
-    const mainApp = document.getElementById('mainApp');
-    if(mainApp) mainApp.style.display = 'flex';
-    const nameEl = document.getElementById('userProfileName');
-    const badgeEl = document.getElementById('userBadgeRole');
-    if(nameEl) nameEl.innerText = currentUser.name || currentUser.username || 'ພະນັກງານขาย';
-    if(badgeEl) badgeEl.innerText = currentUser.role === 'superadmin' ? '👑 ຜູ້ດູແລລະບົບ' : '🧑‍💼 ພະນັກງານ';
+    var p=document.getElementById('staffSettingsPage');
+    if(p){p.classList.remove('hidden');p.style.display='flex';p.style.flex='1';}
+    showBackBtn('menu'); setActiveStaffTab('navTab_settings');
+    // ✅ ให้ staffBottomNav ยังแสดงอยู่เพื่อ tab highlight ถูกต้อง
+    var nav=document.getElementById('staffBottomNav'); if(nav) nav.style.display='flex';
+}
+function _showMenuPage() {
+    var nav=document.getElementById('staffBottomNav'); if(nav) nav.style.display='flex';
+    hideBackBtn(); setActiveStaffTab('navTab_menu');
+    var mp=document.getElementById('menuPage');
+    if(mp){mp.classList.remove('hidden');mp.style.display='flex';mp.style.flex='1';}
+}
 
-    if(currentUser.role === 'superadmin') {
-        showBottomNav('superadmin');
-        switchAdminTab('staff');
+// ========== 🔙 BACK BUTTON ==========
+let _navBackTarget = null;
+function showBackBtn(t){ _navBackTarget=t; var b=document.getElementById('navBackBtn'); if(b){b.style.opacity='1';b.style.pointerEvents='auto';} }
+function hideBackBtn(){ _navBackTarget=null; var b=document.getElementById('navBackBtn'); if(b){b.style.opacity='0';b.style.pointerEvents='none';} }
+function navGoBack(){
+    var t=_navBackTarget; hideBackBtn();
+    if(!t||t==='menu'||t==='more'){ _showMenuPage(); }
+    else if(t==='staffSettings'){ goToStaffSettings(); }
+    else if(t==='adminMenu'){ backToAdminMenu(); }
+    else if(t==='staffSales'){ goToAdminPage('staffSalesPage'); }
+    else if(t==='settings'){ goToAdminPage('settingsPage'); }
+}
+
+
+
+function showMenu() {
+    hideAllPages();
+    var mainApp=document.getElementById('mainApp');
+    if(mainApp) mainApp.style.display='flex';
+    var nameEl=document.getElementById('userProfileName');
+    var badgeEl=document.getElementById('userBadgeRole');
+    if(nameEl) nameEl.innerText=currentUser.name||currentUser.username||'ພະນັກງານ';
+    if(badgeEl) badgeEl.innerText=currentUser.role==='superadmin'?'👑 Admin':'Staff Agent';
+    if(currentUser.role==='superadmin'){
+        var sn=document.getElementById('staffBottomNav'); if(sn) sn.style.display='none';
+        showPage('superAdminMenuPage');
+        hideBackBtn();
     } else {
         showBottomNav('staff');
-        switchNavTab('recorder');
+        _showMenuPage();
     }
 }
 
 function goToAdminPage(pageId) {
     hideAllPages();
     showPage(pageId);
+    if(['staffPage','checkWinPage','staffSalesPage','settingsPage','timeLimitPage'].includes(pageId)) showBackBtn('adminMenu');
+    else if(['totalSalesPage','winnerStatPage','staffBreakdownPage'].includes(pageId)) showBackBtn('staffSales');
+    else if(['payoutSettingPage','changePassPage','colorModePage','exportPage'].includes(pageId)) showBackBtn('settings');
+    else hideBackBtn();
     if(pageId === 'staffPage')      loadStaffList();
     if(pageId === 'timeLimitPage')  loadTimeLimits();
     if(pageId === 'checkWinPage') {
@@ -1827,19 +1844,19 @@ const STAFF_NAV_PAGES  = ['recorderWrapper','dashboardPage','checkWinStaffPage',
 const ADMIN_NAV_PAGES  = ['staffPage','staffSalesPage','checkWinPage','settingsPage'];
 
 function showBottomNav(role) {
-    const nav = document.getElementById('globalBottomNav');
-    if(!nav) return;
-    nav.style.display = 'flex';
-    document.getElementById('staffNav').style.display = role === 'staff' ? 'flex' : 'none';
-    document.getElementById('adminNav').style.display  = role === 'superadmin' ? 'flex' : 'none';
-    // ✅ ให้ mainApp มี padding-bottom เท่ากับความสูง nav bar เพื่อไม่ให้บัง content
+    // ✅ แก้ไข: HTML มีแค่ staffBottomNav ไม่มี globalBottomNav/staffNav/adminNav
+    const staffNav = document.getElementById('staffBottomNav');
+    if(staffNav) {
+        staffNav.style.display = (role === 'staff') ? 'flex' : 'none';
+    }
+    // admin ไม่มี bottom nav แบบแท็บ ใช้ superAdminMenuPage แทน
     const app = document.getElementById('mainApp');
-    if(app) app.style.paddingBottom = 'calc(56px + env(safe-area-inset-bottom, 0px))';
+    if(app) app.style.paddingBottom = (role === 'staff') ? 'calc(60px + env(safe-area-inset-bottom, 0px))' : '0';
 }
 
 function hideBottomNav() {
-    const nav = document.getElementById('globalBottomNav');
-    if(nav) nav.style.display = 'none';
+    const staffNav = document.getElementById('staffBottomNav');
+    if(staffNav) staffNav.style.display = 'none';
     const app = document.getElementById('mainApp');
     if(app) app.style.paddingBottom = '0';
 }
@@ -1852,30 +1869,32 @@ function setActiveNavTab(tabId) {
 
 function switchNavTab(tab) {
     hideAllPages();
-    if(tab === 'recorder')  { showPage('recorderWrapper'); setActiveNavTab('navTab_recorder'); initRecorderPage(); }
-    else if(tab === 'dashboard') { showPage('dashboardPage'); setActiveNavTab('navTab_dashboard'); loadDashboardData(); }
-    else if(tab === 'checkwin')  { showPage('checkWinStaffPage'); setActiveNavTab('navTab_checkwin');
+    if(tab === 'recorder')       { showPage('recorderWrapper'); hideBackBtn(); initRecorderPage(); }
+    else if(tab === 'dashboard') { showPage('dashboardPage'); showBackBtn('more'); loadDashboardData(); }
+    else if(tab === 'checkwin')  { showPage('checkWinStaffPage'); showBackBtn('more');
         const d = document.getElementById('searchDate');
         if(d && !d.value) { const n=new Date(); d.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
     }
-    else if(tab === 'history') { showPage('billHistoryPage'); setActiveNavTab('navTab_history'); loadBillHistory(); }
-    else if(tab === 'more') { showPage('menuPage'); setActiveNavTab('navTab_more'); }
+    else if(tab === 'history')   { showPage('billHistoryPage'); showBackBtn('more'); loadBillHistory(); }
+    else if(tab === 'more')      { showPage('moreMenuPage'); hideBackBtn(); }
 }
 
 function switchAdminTab(tab) {
     hideAllPages();
-    if(tab === 'staff')    { showPage('staffPage'); setActiveNavTab('navTab_adminStaff'); loadStaffList(); }
-    else if(tab === 'sales')    { showPage('staffSalesPage'); setActiveNavTab('navTab_adminSales'); }
-    else if(tab === 'check')    { showPage('checkWinPage'); setActiveNavTab('navTab_adminCheck');
+    // ✅ แก้ไข: admin ไม่มี bottom nav tabs ใน HTML ข้าม setActiveNavTab
+    if(tab === 'staff')    { showPage('staffPage'); loadStaffList(); }
+    else if(tab === 'sales')    { showPage('staffSalesPage'); }
+    else if(tab === 'check')    { showPage('checkWinPage');
         const d = document.getElementById('searchDate2');
         if(d && !d.value) { const n=new Date(); d.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
     }
-    else if(tab === 'settings') { showPage('settingsPage'); setActiveNavTab('navTab_adminSettings'); }
+    else if(tab === 'settings') { showPage('settingsPage'); }
 }
 
 function goToColorMode() {
     hideAllPages();
     showPage('colorModePage');
+    showBackBtn('staffSettings');
     initColorModeUI();
 }
 
@@ -1891,19 +1910,23 @@ function backFromColorMode() {
 function goToDashboard() { 
     hideAllPages(); 
     showPage('dashboardPage');
+    showBackBtn('menu');
     loadDashboardData();
     if(currentUser.role === 'superadmin') loadPayoutSettings();
 }
 
-function backToMenu() { showMenu(); }
+function backToMenu() { _showMenuPage(); }
 
 function goToBillHistory() {
     hideAllPages();
     showPage('billHistoryPage');
+    showBackBtn('menu');
     loadBillHistory();
 }
 
 function goToCheckWin() {
+    showBackBtn('menu'); setActiveStaffTab('navTab_checkwin');
+    showBackBtn('more');
     hideAllPages();
     showPage('checkWinStaffPage');
     // set วันที่เป็นวันนี้อัตโนมัติ
@@ -1915,7 +1938,7 @@ function goToCheckWin() {
     document.getElementById('winnersResultList').innerHTML = '';
 }
 
-function goToRecorder() { initRecorderPage(); }
+function goToRecorder() { hideAllPages(); showPage('recorderWrapper'); showBackBtn('menu'); setActiveStaffTab('navTab_recorder'); initRecorderPage(); }
 
 // ⚙️ โหลดອັດຕາຈ່າຍรางวัลจาก backend
 function loadPayoutSettings() {
@@ -1986,14 +2009,154 @@ function savePayoutSettings() {
     }).catch(err => { showLoading(false); alert(err.toString()); });
 }
 
-// ========== 🕐 SERVER CLOCK ENGINE ==========
+// ========== 🛠️ HELPER: แปลงตำแหน่งภาษาลาว→ไทย ==========
+// ✅ แก้ไข Bug 6: HTML ใช้ภาษาลาว ('ເທິງ','ລຸ່ມ','ທັງໝົດ') แต่ข้อมูลบันทึกด้วยภาษาไทย ('บน','ล่าง','ทั้งหมด')
+function _mapPositionLaoToThai(pos) {
+    const map = {
+        'ເທິງ': 'บน', 'บน': 'บน',
+        'ລຸ່ມ': 'ล่าง', 'ล่าง': 'ล่าง',
+        'ທັງໝົດ': 'ทั้งหมด', 'ทั้งหมด': 'ทั้งหมด',
+        'ເທິງ+ລຸ່ມ': 'บน+ล่าง', 'บน+ล่าง': 'บน+ล่าง',
+        'รวม': 'รวม'
+    };
+    return map[pos] || pos;
+}
+
+// ========== 🛠️ MISSING FUNCTIONS: lotteryInputModal popup (Bug 7&8) ==========
+// ✅ แก้ไข: HTML ใช้ฟังก์ชันเหล่านี้แต่ไม่มีใน JS เดิม
+function setPopupPosition(pos) {
+    popupSelectedPosition = pos;
+    const btnTop  = document.getElementById('popPosTop');
+    const btnBot  = document.getElementById('popPosBottom');
+    const btnBoth = document.getElementById('popPosBoth');
+    const singleSec = document.getElementById('popSingleAmountSection');
+    const doubleSec = document.getElementById('popDoubleAmountSection');
+
+    [btnTop, btnBot, btnBoth].forEach(b => { if(b) b.classList.remove('active'); });
+
+    if(pos === 'ເທິງ' || pos === 'บน') {
+        if(btnTop) btnTop.classList.add('active');
+        if(singleSec) singleSec.style.display = 'block';
+        if(doubleSec) doubleSec.style.display = 'none';
+        _popupLastFocused = 'single';
+        setTimeout(() => { const el = document.getElementById('popHuayAmt'); if(el) el.focus(); }, 80);
+    } else if(pos === 'ລຸ່ມ' || pos === 'ล่าง') {
+        if(btnBot) btnBot.classList.add('active');
+        if(singleSec) singleSec.style.display = 'block';
+        if(doubleSec) doubleSec.style.display = 'none';
+        _popupLastFocused = 'single';
+        setTimeout(() => { const el = document.getElementById('popHuayAmt'); if(el) el.focus(); }, 80);
+    } else { // ເທິງ+ລຸ່ມ
+        if(btnBoth) btnBoth.classList.add('active');
+        if(singleSec) singleSec.style.display = 'none';
+        if(doubleSec) doubleSec.style.display = 'grid';
+        // reset ค่าและ focus ฝั่งบนก่อน
+        _popupLastFocused = 'top';
+        const topEl = document.getElementById('popHuayAmtTop');
+        const botEl = document.getElementById('popHuayAmtBottom');
+        const topLabel = document.getElementById('popTopLabel');
+        const botLabel = document.getElementById('popBotLabel');
+        if(topEl) { topEl.style.borderColor = 'rgba(74,222,128,1)'; }
+        if(botEl) { botEl.style.borderColor = 'rgba(74,222,128,0.2)'; }
+        if(topLabel) topLabel.style.opacity = '1';
+        if(botLabel) botLabel.style.opacity = '0.5';
+        setTimeout(() => { if(topEl) topEl.focus(); }, 80);
+    }
+}
+
+// ตัวแปร track ว่า input ไหนถูก focus ล่าสุดใน lotteryInputModal
+let _popupLastFocused = 'top'; // 'top' | 'bot' | 'single'
+
+function addPopupQuickAmt(amt) {
+    const pos = popupSelectedPosition;
+    const isBoth = (pos === 'ເທິງ+ລຸ່ມ' || pos === 'บน+ล่าง');
+    const hint = document.getElementById('popChipHint');
+
+    if(isBoth) {
+        // ✅ บวกเฉพาะฝั่งที่ focus ล่าสุด ไม่ใช่ทั้ง 2 ฝั่ง
+        const isBot = _popupLastFocused === 'bot';
+        const targetId = isBot ? 'popHuayAmtBottom' : 'popHuayAmtTop';
+        const el = document.getElementById(targetId);
+        if(el) {
+            el.value = (parseFloat(el.value) || 0) + amt;
+            el.focus();
+        }
+        if(hint) hint.innerText = isBot ? `➕ ${(amt/1000).toFixed(0)}K → ຝັ່ງລຸ່ມ` : `➕ ${(amt/1000).toFixed(0)}K → ຝັ່ງເທິງ`;
+    } else {
+        const el = document.getElementById('popHuayAmt');
+        if(el) el.value = (parseFloat(el.value) || 0) + amt;
+        if(hint) hint.innerText = '';
+    }
+}
+
+function closeLotteryInputModal() {
+    // ✅ แก้ไข Bug 8
+    const m = document.getElementById('lotteryInputModal');
+    if(m) m.style.display = 'none';
+}
+
+function confirmAddItemsFromPopup() {
+    // ✅ แก้ไข Bug 8: ยืนยันเพิ่มรายการจาก lotteryInputModal (หวยไทย 2 ตัว)
+    const numEl = document.getElementById('popupDisplayNum');
+    const num = numEl ? numEl.innerText.trim() : '';
+    if(!num || num === '--') { alert("⚠️ ไม่พบตัวเลขหวย"); return; }
+
+    const pos = popupSelectedPosition;
+    const isBoth = (pos === 'ເທິງ+ລຸ່ມ' || pos === 'บน+ล่าง');
+
+    if(isBoth) {
+        const amtTop = parseFloat(document.getElementById('popHuayAmtTop')?.value) || 0;
+        const amtBot = parseFloat(document.getElementById('popHuayAmtBottom')?.value) || 0;
+        if(amtTop <= 0 && amtBot <= 0) { alert("⚠️ กรุณากรอกจำนวนเงินอย่างน้อย 1 ช่อง"); return; }
+        if(amtTop > 0) currentBillItems.unshift({ num, position: 'บน',  price: amtTop, type: 'ไทย-2ตัว' });
+        if(amtBot > 0) currentBillItems.unshift({ num, position: 'ล่าง', price: amtBot, type: 'ไทย-2ตัว' });
+    } else {
+        const amt = parseFloat(document.getElementById('popHuayAmt')?.value) || 0;
+        if(amt <= 0) { alert("⚠️ กรุณากรอกจำนวนเงิน"); return; }
+        const posMapped = _mapPositionLaoToThai(pos);
+        currentBillItems.unshift({ num, position: posMapped, price: amt, type: 'ไทย-2ตัว' });
+    }
+
+    closeLotteryInputModal();
+    renderBillTable();
+    const numInput = document.getElementById('huayNum');
+    const amtInput = document.getElementById('huayAmt');
+    if(numInput) numInput.value = '';
+    if(amtInput) amtInput.value = '';
+    if(numInput) numInput.focus();
+}
+
+// ✅ แก้ไข Bug 8: openLotteryInputModal ถ้ายังไม่มี
+function openLotteryInputModal(num) {
+    const dispEl = document.getElementById('popupDisplayNum');
+    if(dispEl) dispEl.innerText = num || '--';
+    const modal = document.getElementById('lotteryInputModal');
+    if(!modal) return;
+    // Reset ค่าทั้งหมด
+    const amtEl = document.getElementById('popHuayAmt');
+    const topEl = document.getElementById('popHuayAmtTop');
+    const botEl = document.getElementById('popHuayAmtBottom');
+    if(amtEl) amtEl.value = '';
+    if(topEl) topEl.value = '';
+    if(botEl) botEl.value = '';
+    // Reset focus tracker
+    _popupLastFocused = 'single';
+    setPopupPosition('ເທິງ');
+    modal.style.display = 'flex';
+    if(amtEl) setTimeout(() => { amtEl.focus(); _popupLastFocused = 'single'; }, 100);
+}
+
+
 let _serverTimeOffset = 0;
 let _clockSynced = false;
 let _clockInterval = null;
 
 // popup ໝົດເວລາ
 function showTimeLimitPopup(huayType) {
-    const limitStr = huayType === 'ไทย' ? serverTimeLimits.thai : serverTimeLimits.lao;
+    // ✅ แก้ไข: รองรับทั้งภาษาไทยและภาษาลาว
+    const isThaiType = (huayType === 'ไทย' || huayType === 'ໄທ');
+    const limitStr = isThaiType ? serverTimeLimits.thai : serverTimeLimits.lao;
+    const typeLabel = isThaiType ? 'ຫວຍໄທ' : 'ຫວຍລາວ';
     let modal = document.getElementById('timeLimitPopup');
     if(!modal) {
         modal = document.createElement('div');
@@ -2012,7 +2175,7 @@ function showTimeLimitPopup(huayType) {
             </div>`;
         document.body.appendChild(modal);
     }
-    document.getElementById('timeLimitMsg').innerText = `หวย${huayType} ปิดรับเดิมพันเวลา ${limitStr} น.\nรอรอบถัดไป`;
+    document.getElementById('timeLimitMsg').innerText = `${typeLabel} ปิดรับเดิมพันเวลา ${limitStr} น.\nรอรอบถัดไป`;
     modal.style.display = 'flex';
 }
 
@@ -2067,7 +2230,9 @@ function tickClock() {
 function isTimeLimitExceeded(huayType) {
     const now = getServerNow();
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const limitStr = huayType === 'ไทย' ? serverTimeLimits.thai : serverTimeLimits.lao;
+    // ✅ แก้ไข: รองรับทั้งภาษาไทยและภาษาลาว
+    const isThaiType = (huayType === 'ไทย' || huayType === 'ໄທ');
+    const limitStr = isThaiType ? serverTimeLimits.thai : serverTimeLimits.lao;
     const parts = limitStr.split(':');
     const limitMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
     return nowMinutes >= limitMinutes;
@@ -2134,17 +2299,19 @@ function checkNearClosingTime() {
     const now = getServerNow();
     const nowMin = now.getHours() * 60 + now.getMinutes();
 
-    ['ลาว','ไทย'].forEach(type => {
-        const limitStr = type === 'ไทย' ? serverTimeLimits.thai : serverTimeLimits.lao;
+    // ✅ แก้ไข: ใช้ค่าภาษาลาวให้ตรงกับ currentHuayType
+    ['ລາວ','ໄທ'].forEach(type => {
+        const isThaiType = (type === 'ໄທ');
+        const limitStr = isThaiType ? serverTimeLimits.thai : serverTimeLimits.lao;
         const parts = limitStr.split(':');
         const limitMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
         const diff = limitMin - nowMin;
-        const warned = type === 'ไทย' ? _warnedThai : _warnedLao;
+        const warned = isThaiType ? _warnedThai : _warnedLao;
 
         if(diff === 15 && !warned) {
             // เตือนล่วงหน้า 15 ນາທີ
-            if(type === 'ไทย') _warnedThai = true; else _warnedLao = true;
-            showStatusModal("⚠️ ໃກ້ໝົດເວລາ!", `หวย${type} จะปิดรับใน 15 ນາທີ (${limitStr} น.)`, false);
+            if(isThaiType) _warnedThai = true; else _warnedLao = true;
+            showStatusModal("⚠️ ໃກ້ໝົດເວລາ!", `${type === 'ໄທ' ? 'ຫວຍໄທ' : 'ຫວຍລາວ'} ຈະປິດຮັບໃນ 15 ນາທີ (${limitStr} ນ.)`, false);
         }
         // reset flag เที่ยงคืน
         if(nowMin === 0) { _warnedLao = false; _warnedThai = false; }
@@ -2369,11 +2536,13 @@ function executeSearchWinners2() {
     const formattedDate = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parseInt(parts[0])}`;
     highlightWinningNum = winNum;
     highlightPositionFilter = posFilter;
+    // ✅ แก้ไข: แปลงค่าภาษาลาว→ไทย
+    const posFilterMapped = _mapPositionLaoToThai(posFilter);
     showLoading(true);
     fetch(BACKEND_API_URL, {
         method:"POST", mode:"cors",
         headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body: JSON.stringify({ action:"checkWinners", winningNum:winNum, positionFilter:posFilter, targetDate:formattedDate, username:currentUser.username, role:currentUser.role })
+        body: JSON.stringify({ action:"checkWinners", winningNum:winNum, positionFilter:posFilterMapped, targetDate:formattedDate, username:currentUser.username, role:currentUser.role })
     })
     .then(res => res.json()).then(data => {
         showLoading(false);
@@ -2481,23 +2650,23 @@ function renderSalesChart(rawData) {
         const y = padT + chartH - barH;
         const isToday = i === 6;
 
-        // แท่ง
-        ctx.fillStyle = isToday ? '#f5a623' : '#7a3d10';
+        // แท่ง — สีเขียว
+        ctx.fillStyle = isToday ? '#4ade80' : 'rgba(74,222,128,0.35)';
         ctx.beginPath();
         ctx.roundRect(x, y, barW, barH, 4);
         ctx.fill();
 
         // label วัน
-        ctx.fillStyle = '#c4883a';
-        ctx.font = '10px Noto Sans Thai, sans-serif';
+        ctx.fillStyle = isToday ? '#4ade80' : 'rgba(74,222,128,0.5)';
+        ctx.font = '10px Noto Sans Lao, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(label, x + barW/2, H - 8);
 
         // ยอด
         if(sales[i] > 0) {
             const kval = sales[i] >= 1000 ? Math.round(sales[i]/1000) + 'K' : sales[i];
-            ctx.fillStyle = isToday ? '#f5a623' : '#c4883a';
-            ctx.font = '9px Noto Sans Thai, sans-serif';
+            ctx.fillStyle = isToday ? '#4ade80' : 'rgba(74,222,128,0.7)';
+            ctx.font = '9px Noto Sans Lao, sans-serif';
             ctx.fillText(kval, x + barW/2, y - 4);
         }
     });
@@ -2528,29 +2697,39 @@ function setAppColorMode(mode) {
 function applyColorMode(mode) {
     const root = document.documentElement;
     if(mode === 'light') {
-        root.style.setProperty('--bg-main',     '#f0ebe0');
+        // โหมดสว่าง — โทนเขียวอ่อน
+        root.style.setProperty('--bg-main',     '#f0f7f0');
         root.style.setProperty('--bg-card',     '#ffffff');
-        root.style.setProperty('--border-color','#d4b896');
-        root.style.setProperty('--ios-blue',    '#c47d10');
-        root.style.setProperty('--ios-green',   '#1a7a3a');
-        root.style.setProperty('--ios-pink',    '#c0392b');
-        root.style.setProperty('--text-main',   '#2d1108');
-        root.style.setProperty('--text-muted',  '#8a5a30');
-        root.style.setProperty('--chip-bg',     '#f5e6cc');
-        document.body.style.background = '#f0ebe0';
-        _applyInputColors('#faf5ee', '#2d1108', '#d4b896');
+        root.style.setProperty('--bg-deep',     '#e8f5e8');
+        root.style.setProperty('--border-color','rgba(22,163,74,0.25)');
+        root.style.setProperty('--ios-blue',    '#16a34a');
+        root.style.setProperty('--ios-green',   '#15803d');
+        root.style.setProperty('--ios-pink',    '#dc2626');
+        root.style.setProperty('--accent',      '#4ade80');
+        root.style.setProperty('--text-main',   '#0f2d0f');
+        root.style.setProperty('--text-muted',  'rgba(22,163,74,0.6)');
+        root.style.setProperty('--chip-bg',     '#dcfce7');
+        root.style.setProperty('--glass-bg',    'rgba(22,163,74,0.06)');
+        root.style.setProperty('--glass-border','rgba(22,163,74,0.2)');
+        document.body.style.background = '#f0f7f0';
+        _applyInputColors('#ffffff', '#0f2d0f', 'rgba(22,163,74,0.3)');
     } else if(mode === 'dark') {
-        root.style.setProperty('--bg-main',    '#1a0806');
-        root.style.setProperty('--bg-card',    '#2d1108');
-        root.style.setProperty('--border-color','#5a2210');
-        root.style.setProperty('--ios-blue',   '#f5a623');
-        root.style.setProperty('--ios-green',  '#25a04f');
-        root.style.setProperty('--ios-pink',   '#e05030');
-        root.style.setProperty('--text-main',  '#f5e6c8');
-        root.style.setProperty('--text-muted', '#c4883a');
-        root.style.setProperty('--chip-bg',    '#3a1508');
-        document.body.style.background = '#1a0806';
-        _applyInputColors('#3a1508', '#f5e6c8', '#5a2210');
+        // โหมดมืด — Dark Green (reset กลับค่าเดิมจาก CSS)
+        root.style.setProperty('--bg-main',    '#0a1a0a');
+        root.style.setProperty('--bg-card',    '#0f200f');
+        root.style.setProperty('--bg-deep',    '#061006');
+        root.style.setProperty('--border-color','rgba(74,222,128,0.12)');
+        root.style.setProperty('--ios-blue',   '#4ade80');
+        root.style.setProperty('--ios-green',  '#16a34a');
+        root.style.setProperty('--ios-pink',   '#f87171');
+        root.style.setProperty('--accent',     '#4ade80');
+        root.style.setProperty('--text-main',  'rgba(255,255,255,0.92)');
+        root.style.setProperty('--text-muted', 'rgba(74,222,128,0.45)');
+        root.style.setProperty('--chip-bg',    '#0d1f0d');
+        root.style.setProperty('--glass-bg',   'rgba(255,255,255,0.07)');
+        root.style.setProperty('--glass-border','rgba(255,255,255,0.15)');
+        document.body.style.background = '#0a1a0a';
+        _applyInputColors('rgba(255,255,255,0.05)', 'rgba(255,255,255,0.92)', 'rgba(255,255,255,0.1)');
     } else {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         applyColorMode(prefersDark ? 'dark' : 'light');
@@ -2565,17 +2744,18 @@ function _applyInputColors(bg, color, border) {
         return s;
     })();
 
-    const isLight = bg === '#faf5ee';
-    const navBg      = isLight ? '#fff8f0' : '#220d07';
-    const cardBg     = isLight ? '#ffffff'  : '#2d1108';
-    const bottomBg   = isLight ? '#fff8f0'  : '#220d07';
-    const segBg      = isLight ? '#f0e8da'  : '#220d07';
-    const chipBg     = isLight ? '#f5e6cc'  : '#3a1508';
-    const borderCol  = isLight ? '#d4b896'  : '#5a2210';
-    const mutedColor = isLight ? '#8a5a30'  : '#c4883a';
-    const statValCol = isLight ? '#1a7a3a'  : '#25a04f';
-    const accentCol  = isLight ? '#c47d10'  : '#f5a623';
-    const btnPrimTxt = isLight ? '#ffffff'  : '#1a0806';
+    const isLight = !bg.includes('rgba(255,255,255,0.05)') && !bg.startsWith('#0');
+    // Dark green palette
+    const navBg      = isLight ? 'rgba(240,247,240,0.9)'   : 'rgba(6,16,6,0.85)';
+    const cardBg     = isLight ? '#ffffff'                  : 'rgba(255,255,255,0.07)';
+    const bottomBg   = isLight ? 'rgba(240,247,240,0.9)'   : 'rgba(6,16,6,0.85)';
+    const segBg      = isLight ? 'rgba(22,163,74,0.08)'    : 'rgba(255,255,255,0.05)';
+    const chipBg     = isLight ? '#dcfce7'                  : '#0d1f0d';
+    const borderCol  = isLight ? 'rgba(22,163,74,0.25)'    : 'rgba(74,222,128,0.12)';
+    const mutedColor = isLight ? 'rgba(22,163,74,0.6)'     : 'rgba(74,222,128,0.45)';
+    const statValCol = isLight ? '#15803d'                  : '#4ade80';
+    const accentCol  = isLight ? '#16a34a'                  : '#4ade80';
+    const btnPrimTxt = '#ffffff';
 
     style.textContent = `
         input, select, textarea {
@@ -2583,50 +2763,42 @@ function _applyInputColors(bg, color, border) {
             color: ${color} !important;
             border-color: ${border} !important;
         }
-        input::placeholder { color: ${color}88 !important; }
-        select option { background: ${bg}; color: ${color}; }
+        input::placeholder { color: ${isLight ? 'rgba(22,163,74,0.4)' : 'rgba(255,255,255,0.3)'} !important; }
+        select option { background: ${isLight ? '#f0f7f0' : '#0f200f'}; color: ${color}; }
 
-        /* navbar & bottom bar */
         .navbar-top { background: ${navBg} !important; border-color: ${borderCol} !important; }
         .bottom-bar { background: ${bottomBg} !important; border-color: ${borderCol} !important; }
 
-        /* cards */
         .card { background: ${cardBg} !important; border-color: ${borderCol} !important; }
-        .stat-card { background: ${isLight ? '#faf5ee' : '#3a1508'} !important; border-color: ${borderCol} !important; }
-        .menu-item { background: ${cardBg} !important; border-color: ${borderCol} !important; }
+        .glass-card { background: ${cardBg} !important; border-color: ${borderCol} !important; }
+        .stat-card { background: ${isLight ? 'rgba(22,163,74,0.06)' : 'rgba(255,255,255,0.04)'} !important; border-color: ${borderCol} !important; }
+        .menu-item { background: ${isLight ? 'rgba(22,163,74,0.06)' : 'rgba(255,255,255,0.07)'} !important; border-color: ${borderCol} !important; }
+        .settings-item { background: ${isLight ? 'rgba(22,163,74,0.04)' : 'rgba(255,255,255,0.04)'} !important; border-color: ${borderCol} !important; }
 
-        /* text */
         .menu-title { color: ${color} !important; }
         .stat-label { color: ${mutedColor} !important; }
         .stat-value { color: ${statValCol} !important; }
         .table-bill th { color: ${mutedColor} !important; }
-        .table-bill td { color: ${color} !important; border-color: ${isLight ? '#e8dece' : '#1c2333'} !important; }
+        .table-bill td { color: ${color} !important; border-color: ${borderCol} !important; }
 
-        /* segmented control */
         .segmented-control { background: ${segBg} !important; border-color: ${borderCol} !important; }
         .segment-btn { color: ${mutedColor} !important; }
-        .segment-btn.active { background: ${accentCol} !important; color: ${btnPrimTxt} !important; }
+        .segment-btn.active { background: linear-gradient(135deg, #16a34a, #15803d) !important; color: #fff !important; }
 
-        /* chips */
-        .btn-amt-chip { background: ${chipBg} !important; color: ${color} !important; border-color: ${borderCol} !important; }
+        .btn-amt-chip { background: ${chipBg} !important; color: ${accentCol} !important; border-color: ${borderCol} !important; }
 
-        /* btn secondary */
         .btn-secondary, .bb-secondary {
-            background: ${isLight ? '#f0e8da' : '#3a1508'} !important;
+            background: ${isLight ? 'rgba(22,163,74,0.08)' : 'rgba(255,255,255,0.06)'} !important;
             color: ${color} !important;
             border-color: ${borderCol} !important;
         }
 
-        /* primary btn text */
         .bb-primary, .btn-primary { color: ${btnPrimTxt} !important; }
 
-        /* muted text */
-        [style*="color: var(--text-muted)"],
-        [style*="color:var(--text-muted)"] { color: ${mutedColor} !important; }
-
-        /* page bg */
         .app-container { background: transparent !important; }
-        .page-wrapper { background: ${isLight ? '#f0ebe0' : '#1a0806'} !important; }
+        .page-wrapper { background: ${isLight ? '#f0f7f0' : '#0a1a0a'} !important; }
+        
+        body { background: ${isLight ? '#f0f7f0' : '#0a1a0a'} !important; }
     `;
 }
 
@@ -2690,6 +2862,7 @@ const EXPORT_TYPES = {
 };
 
 function goToExportPage() {
+    showBackBtn('more');
     hideAllPages();
     showPage('exportPage');
 
